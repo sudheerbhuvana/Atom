@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
 import Docker from 'dockerode';
 
-// Initialize Docker client
-// By default, this looks for /var/run/docker.sock on Linux/Mac
-// or //./pipe/docker_engine on Windows.
-const docker = new Docker();
+// Initialize Docker client with explicit socket path based on OS
+const socketPath = process.env.DOCKER_SOCKET_PATH || (process.platform === 'win32' ? '//./pipe/docker_engine' : '/var/run/docker.sock');
+const docker = new Docker({ socketPath });
 
 function formatBytes(bytes: number) {
     if (bytes === 0) return '0 B';
