@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import styles from '../onboard/page.module.css';
+import styles from './page.module.css';
 
 export default function LoginPage() {
     const [username, setUsername] = useState('');
@@ -12,7 +12,6 @@ export default function LoginPage() {
     const [checking, setChecking] = useState(true);
     const router = useRouter();
 
-    // Check if onboarding is needed
     // Check if onboarding is needed
     useEffect(() => {
         // Safety timeout in case fetch hangs
@@ -69,7 +68,7 @@ export default function LoginPage() {
         return (
             <div className={styles.container}>
                 <div className={styles.card}>
-                    <p>Loading...</p>
+                    <p className={styles.subtitle}>Initializing...</p>
                 </div>
             </div>
         );

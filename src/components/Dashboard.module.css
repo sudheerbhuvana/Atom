@@ -213,6 +213,16 @@
     }
 }
 
+/* Loader */
+.loader {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+}
+
 .layoutControls {
     display: flex;
     gap: 0.5rem;

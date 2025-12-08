@@ -23,20 +23,7 @@ export async function getConfig(): Promise<AppConfig> {
     try {
         const config = getDbConfig() as AppConfig | null;
         if (!config) {
-            // First time - try to migrate legacy config
-            if (fs.existsSync(LEGACY_CONFIG_PATH)) {
-                try {
-                    const legacyData = fs.readFileSync(LEGACY_CONFIG_PATH, 'utf-8');
-                    const legacyConfig = JSON.parse(legacyData);
-                    saveDbConfig(legacyConfig);
-                    console.log('Migrated legacy config to SQLite');
-                    return legacyConfig;
-                } catch (e) {
-                    console.error('Failed to migrate legacy config:', e);
-                }
-            }
-
-            // Fallback to default
+            // First time - use default config
             saveDbConfig(DEFAULT_CONFIG);
             return DEFAULT_CONFIG;
         }

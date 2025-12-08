@@ -24,28 +24,15 @@ if (!globalWithDb._db) {
 db = globalWithDb._db;
 
 // Initialize tables
-db.exec(`
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        password_hash TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-    
-    CREATE TABLE IF NOT EXISTS sessions (
-        id TEXT PRIMARY KEY,
-        user_id INTEGER NOT NULL,
-        expires_at DATETIME NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    );
-    
-    CREATE TABLE IF NOT EXISTS config (
-        id INTEGER PRIMARY KEY CHECK (id = 1),
-        data TEXT NOT NULL,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-`);
+// Initialize tables from schema file
+try {
+    const schemaPath = path.join(process.cwd(), 'src', 'lib', 'schema.sql');
+    const schema = fs.readFileSync(schemaPath, 'utf8');
+    db.exec(schema);
+} catch (error) {
+    console.error('Failed to initialize database schema:', error);
+    // Fallback or re-throw depending on severity. For now, log.
+}
 
 export interface User {
     id: number;
