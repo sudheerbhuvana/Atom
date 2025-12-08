@@ -1,10 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Search, Grid3X3, Grid2X2, List as ListIcon } from 'lucide-react';
-import { AppConfig } from '@/types';
 import ServiceCard from './ServiceCard';
 import SystemStatsWidget from './SystemStats';
 import DockerWidget from './DockerWidget';
@@ -22,7 +19,6 @@ export default function Dashboard() {
     const [layout, setLayout] = useState<'list' | 'grid4' | 'grid6'>('grid6');
     const [showShortcuts, setShowShortcuts] = useState(false);
     const searchRef = useRef<HTMLInputElement>(null);
-    const router = useRouter();
     const { refreshAll, checkMany } = useStatus();
 
     // Initial Status Check
@@ -32,63 +28,6 @@ export default function Dashboard() {
         // Fire and forget, context handles throttling
         checkMany(urls);
     }, [config?.services, checkMany]);
-
-    // Keyboard shortcuts
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            // Ignore if user is typing in an input
-            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-                // Escape to blur search
-                if (e.key === 'Escape') {
-                    (e.target as HTMLElement).blur();
-                }
-                return;
-            }
-
-            switch (e.key) {
-                case '/':
-                    e.preventDefault();
-                    searchRef.current?.focus();
-                    break;
-                case '?':
-                    setShowShortcuts(prev => !prev);
-                    break;
-                case 's':
-                case 'S':
-                    router.push('/settings');
-                    break;
-                case '1':
-                    handleLayoutChange('grid6');
-                    break;
-                case '2':
-                    handleLayoutChange('grid4');
-                    break;
-                case '3':
-                    handleLayoutChange('list');
-                    break;
-                case 'Escape':
-                    setShowShortcuts(false);
-                    break;
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [router, config]); // config dep is fine, context updates it
-
-
-    // Set initial layout from config
-    useEffect(() => {
-        if (config) {
-            if (config.layout?.style === 'list') {
-                setLayout('list');
-            } else if (config.layout?.columns === 4) {
-                setLayout('grid4');
-            } else {
-                setLayout('grid6');
-            }
-        }
-    }, [config]);
 
     const handleLayoutChange = (newLayout: 'list' | 'grid4' | 'grid6') => {
         if (!config) return;
@@ -277,7 +216,7 @@ export default function Dashboard() {
                     {/* Empty Search State */}
                     {!hasResults && search.trim() !== '' && (
                         <div className={styles.emptyState}>
-                            <p>No results found for "{search}"</p>
+                            <p>No results found for &quot;{search}&quot;</p>
                             <a
                                 href={getSearchUrl(search)}
                                 target="_blank"

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllUsersSafe, createUser, deleteUser, updateUserPassword, getUserByUsername, getUserById, getUserCount } from '@/lib/db';
+import { getAllUsersSafe, createUser, deleteUser, updateUserPassword, getUserById, getUserCount } from '@/lib/db';
 import { hashPassword, getCurrentUser } from '@/lib/auth';
 import { createUserSchema, changePasswordSchema } from '@/lib/validation';
 
@@ -49,15 +49,16 @@ export async function POST(req: NextRequest) {
                 username: newUser.username,
                 created_at: newUser.created_at
             });
-        } catch (e: any) {
+        } catch (e) {
             // Handle unique constraint violation
-            if (e.message === 'Username already exists' || e.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+            const error = e as Error & { code?: string };
+            if (error.message === 'Username already exists' || error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
                 return NextResponse.json({ error: 'Username already taken' }, { status: 400 });
             }
             console.error('User operation error:', e);
             return NextResponse.json({ error: 'An error occurred' }, { status: 500 });
         }
-    } catch (e: any) {
+    } catch (e) {
         console.error('User operation error:', e);
         return NextResponse.json({ error: 'An error occurred' }, { status: 500 });
     }
@@ -93,7 +94,7 @@ export async function DELETE(req: NextRequest) {
 
         deleteUser(id);
         return NextResponse.json({ success: true });
-    } catch (e: any) {
+    } catch (e) {
         console.error('User operation error:', e);
         return NextResponse.json({ error: 'An error occurred' }, { status: 500 });
     }
@@ -126,7 +127,7 @@ export async function PUT(req: NextRequest) {
         updateUserPassword(id, passHash);
 
         return NextResponse.json({ success: true });
-    } catch (e: any) {
+    } catch (e) {
         console.error('User operation error:', e);
         return NextResponse.json({ error: 'An error occurred' }, { status: 500 });
     }

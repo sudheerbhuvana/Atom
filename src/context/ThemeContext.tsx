@@ -16,13 +16,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        // Get saved theme from localStorage
-        const savedTheme = localStorage.getItem('atom-theme') as Theme;
-        if (savedTheme) {
+        // Get saved theme from localStorage on mount only
+        const savedTheme = localStorage.getItem('atom-theme') as Theme | null;
+        if (savedTheme && savedTheme !== theme) {
             setTheme(savedTheme);
             document.documentElement.setAttribute('data-theme', savedTheme);
         }
         setMounted(true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const toggleTheme = () => {

@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Box, ArrowUpRight } from 'lucide-react';
 import { Service } from '@/types';
@@ -19,14 +18,14 @@ export default function ServiceCard({ service, compact = false }: ServiceCardPro
 
     if (service.icon) {
         const slug = 'si' + service.icon.charAt(0).toUpperCase() + service.icon.slice(1);
-        // @ts-ignore
+        // @ts-expect-error - simple-icons dynamic access
         const iconData = simpleIcons[slug];
         if (iconData) {
             IconPath = iconData.path;
         }
     }
 
-    const { statuses, checkStatus } = useStatus();
+    const { statuses } = useStatus();
 
     // Derived visual state
     // If we have no data at all (first load) OR the context explicitly says loading

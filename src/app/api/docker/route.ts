@@ -118,10 +118,11 @@ export async function GET() {
 
         return NextResponse.json(results);
 
-    } catch (error: any) {
+    } catch (error) {
         console.error('Docker API Error:', error);
 
-        if (error.code === 'ENOENT' && error.address === '/var/run/docker.sock') {
+        const dockerError = error as Error & { code?: string; address?: string };
+        if (dockerError.code === 'ENOENT' && dockerError.address === '/var/run/docker.sock') {
             return NextResponse.json(
                 { error: 'Docker socket not found. Please mount /var/run/docker.sock in Coolify.' },
                 { status: 500 }

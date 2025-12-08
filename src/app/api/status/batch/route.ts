@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
             try {
                 const result = await checkServiceStatus(url);
                 return { url, result };
-            } catch (error) {
+            } catch {
                 return {
                     url,
                     result: {

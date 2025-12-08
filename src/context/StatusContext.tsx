@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { StatusResult } from '@/lib/status-checker';
 
 type ServiceStatus = {
     state: 'loading' | 'up' | 'down' | 'slow';
@@ -33,7 +34,7 @@ export function StatusProvider({ children }: { children: ReactNode }) {
                 latency: data.latency,
                 lastUpdated: Date.now()
             } as ServiceStatus;
-        } catch (e) {
+        } catch {
             return { state: 'down', code: 0, latency: 0, lastUpdated: Date.now() } as ServiceStatus;
         }
     };
@@ -60,7 +61,9 @@ export function StatusProvider({ children }: { children: ReactNode }) {
         setStatuses(prev => ({ ...prev, [url]: data }));
     }, [statuses]);
 
-    const checkMany = useCallback(async (urls: string[], concurrency = 5, force = false) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const checkMany = useCallback(async (urls: string[], _concurrency = 5, force = false) => {
+        // _concurrency parameter reserved for future use
         const uniqueUrls = [...new Set(urls.filter(u => u.startsWith('http')))];
 
         // Filter out URLs that are already fresh if force is false
@@ -101,7 +104,7 @@ export function StatusProvider({ children }: { children: ReactNode }) {
             if (data.results) {
                 setStatuses(prev => {
                     const next = { ...prev };
-                    Object.entries(data.results).forEach(([url, result]: [string, any]) => {
+                    Object.entries(data.results).forEach(([url, result]: [string, StatusResult]) => {
                         next[url] = {
                             state: result.up ? (result.latency > 200 ? 'slow' : 'up') : 'down',
                             code: result.status,

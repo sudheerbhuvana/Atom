@@ -65,8 +65,9 @@ export default function UserManagement() {
             setShowAddModal(false);
             resetForm();
             toast.success('User created successfully');
-        } catch (e: any) {
-            setError(e.message);
+        } catch (e) {
+            const error = e as Error;
+            setError(error.message);
         }
     };
 
@@ -89,8 +90,9 @@ export default function UserManagement() {
 
                         setUsers(prev => prev.filter(u => u.id !== id));
                         toast.success('User deleted');
-                    } catch (e: any) {
-                        toast.error(e.message);
+                    } catch (e) {
+                        const error = e as Error;
+                        toast.error(error.message);
                     }
                 }
             },
@@ -120,9 +122,10 @@ export default function UserManagement() {
             setShowPassModal(false);
             resetForm();
             toast.success('Password updated successfully');
-        } catch (e: any) {
-            setError(e.message);
-            toast.error(e.message);
+        } catch (e) {
+            const error = e as Error;
+            setError(error.message);
+            toast.error(error.message);
         }
     };
 

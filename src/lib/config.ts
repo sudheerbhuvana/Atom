@@ -1,9 +1,6 @@
 import { AppConfig } from '@/types';
 import { getConfig as getDbConfig, saveConfig as saveDbConfig, hasConfig as hasDbConfig } from './db';
 
-import fs from 'fs';
-import path from 'path';
-
 // Default config for new installations
 const DEFAULT_CONFIG: AppConfig = {
     title: 'Atom',
@@ -16,8 +13,6 @@ const DEFAULT_CONFIG: AppConfig = {
     widgets: []
 };
 
-// Legacy config path for migration
-const LEGACY_CONFIG_PATH = path.join(process.cwd(), 'src/data/config.json');
 
 export async function getConfig(): Promise<AppConfig> {
     try {

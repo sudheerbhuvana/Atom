@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Ignore JS files that use CommonJS (scripts, jest config)
+    "jest.config.js",
+    "scripts/**",
+    "test-docker.js",
   ]),
 ]);
 
