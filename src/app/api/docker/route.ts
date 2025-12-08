@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import Docker from 'dockerode';
 
-// Initialize Docker client (Linux default)
-const docker = new Docker({ socketPath: '/var/run/docker.sock' });
+// Initialize Docker client
+// Support both Windows (local dev) and Linux (production)
+const socketPath = process.platform === 'win32' ? '//./pipe/docker_engine' : '/var/run/docker.sock';
+const docker = new Docker({ socketPath });
 
 function formatBytes(bytes: number) {
     if (bytes === 0) return '0 B';
@@ -93,6 +95,14 @@ export async function GET() {
 
     } catch (error: any) {
         console.error('Docker API Error:', error);
+
+        if (error.code === 'ENOENT' && error.address === '/var/run/docker.sock') {
+            return NextResponse.json(
+                { error: 'Docker socket not found. Please mount /var/run/docker.sock in Coolify.' },
+                { status: 500 }
+            );
+        }
+
         return NextResponse.json(
             { error: 'Failed to fetch docker stats', details: error.message },
             { status: 500 }
