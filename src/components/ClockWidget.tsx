@@ -24,35 +24,35 @@ export default function ClockWidget({ weatherLocation, onShowShortcuts, onRefres
     }, []);
 
     useEffect(() => {
-        if (!weatherLocation) return;
-
-        const fetchWeather = async (city: string) => {
-            try {
-                // 1. Geocode
-                const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`);
-                const geoData = await geoRes.json();
-
-                if (!geoData.results || geoData.results.length === 0) return;
-
-                const { latitude, longitude } = geoData.results[0];
-
-                // 2. Weather
-                const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,is_day`);
-                const weatherData = await weatherRes.json();
-
-                if (weatherData.current) {
-                    setWeather({
-                        temp: Math.round(weatherData.current.temperature_2m),
-                        isDay: weatherData.current.is_day === 1
-                    });
-                }
-            } catch (e) {
-                console.error('Weather fetch failed', e);
-            }
-        };
-
-        fetchWeather(weatherLocation);
+        if (weatherLocation) {
+            fetchWeather(weatherLocation);
+        }
     }, [weatherLocation]);
+
+    const fetchWeather = async (city: string) => {
+        try {
+            // 1. Geocode
+            const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`);
+            const geoData = await geoRes.json();
+
+            if (!geoData.results || geoData.results.length === 0) return;
+
+            const { latitude, longitude } = geoData.results[0];
+
+            // 2. Weather
+            const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,is_day`);
+            const weatherData = await weatherRes.json();
+
+            if (weatherData.current) {
+                setWeather({
+                    temp: Math.round(weatherData.current.temperature_2m),
+                    isDay: weatherData.current.is_day === 1
+                });
+            }
+        } catch (e) {
+            console.error('Weather fetch failed', e);
+        }
+    };
 
     const handleLogout = async () => {
         try {

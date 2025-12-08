@@ -17,19 +17,19 @@ const globalWithDb = global as typeof globalThis & {
     _preparedStmts?: Map<string, Database.Statement>;
 };
 
-const db: Database.Database = (() => {
-    if (!globalWithDb._db) {
-        globalWithDb._db = new Database(DB_PATH);
-    }
-    return globalWithDb._db;
-})();
+let db: Database.Database;
+let preparedStmts: Map<string, Database.Statement>;
 
-let preparedStmts: Map<string, Database.Statement> = (() => {
-    if (!globalWithDb._preparedStmts) {
-        globalWithDb._preparedStmts = new Map();
-    }
-    return globalWithDb._preparedStmts;
-})();
+if (!globalWithDb._db) {
+    globalWithDb._db = new Database(DB_PATH);
+    globalWithDb._preparedStmts = new Map();
+}
+db = globalWithDb._db;
+preparedStmts = globalWithDb._preparedStmts || new Map();
+// Ensure it's set back to global in case it was missing
+if (!globalWithDb._preparedStmts) {
+    globalWithDb._preparedStmts = preparedStmts;
+}
 
 // Helper to get or create prepared statement
 function getStmt(sql: string): Database.Statement {

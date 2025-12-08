@@ -91,10 +91,9 @@ export async function register(username: string, password: string): Promise<{ su
         });
 
         return { success: true };
-    } catch (error) {
+    } catch (error: any) {
         // Handle unique constraint violation (username already exists)
-        const dbError = error as Error & { code?: string };
-        if (dbError.message === 'Username already exists' || dbError.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+        if (error.message === 'Username already exists' || error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
             return { success: false, error: 'Username already exists' };
         }
         throw error; // Re-throw unexpected errors
