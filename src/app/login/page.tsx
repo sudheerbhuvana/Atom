@@ -13,30 +13,29 @@ export default function LoginPage() {
     const router = useRouter();
 
     // Check if onboarding is needed
+    // Check if onboarding is needed
     useEffect(() => {
-        useEffect(() => {
-            // Safety timeout in case fetch hangs
-            const timeout = setTimeout(() => setChecking(false), 5000);
+        // Safety timeout in case fetch hangs
+        const timeout = setTimeout(() => setChecking(false), 5000);
 
-            fetch('/api/auth/session', { cache: 'no-store' })
-                .then(res => res.json())
-                .then(data => {
-                    clearTimeout(timeout);
-                    if (data.needsOnboarding) {
-                        router.push('/onboard');
-                    } else if (data.user) {
-                        router.push('/');
-                    } else {
-                        setChecking(false);
-                    }
-                })
-                .catch(() => {
-                    clearTimeout(timeout);
+        fetch('/api/auth/session', { cache: 'no-store' })
+            .then(res => res.json())
+            .then(data => {
+                clearTimeout(timeout);
+                if (data.needsOnboarding) {
+                    router.push('/onboard');
+                } else if (data.user) {
+                    router.push('/');
+                } else {
                     setChecking(false);
-                });
+                }
+            })
+            .catch(() => {
+                clearTimeout(timeout);
+                setChecking(false);
+            });
 
-            return () => clearTimeout(timeout);
-        }, [router]);
+        return () => clearTimeout(timeout);
     }, [router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
