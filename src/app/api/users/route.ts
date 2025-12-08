@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllUsers, createUser, deleteUser, updateUserPassword, getUserByUsername, getUserById } from '@/lib/db';
-import { hashPassword } from '@/lib/auth';
-import { cookies } from 'next/headers';
+import { getAllUsersSafe, createUser, deleteUser, updateUserPassword, getUserByUsername, getUserById, getUserCount } from '@/lib/db';
+import { hashPassword, getCurrentUser } from '@/lib/auth';
+import { createUserSchema, changePasswordSchema } from '@/lib/validation';
 
-// Simple session check helper
+// Proper session validation helper
 async function isAuthenticated() {
-    const cookieStore = await cookies();
-    return !!cookieStore.get('atom_session');
+    const user = await getCurrentUser();
+    return user !== null;
 }
 
 export async function GET() {
@@ -14,15 +14,8 @@ export async function GET() {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const users = getAllUsers();
-    // Remove password hashes
-    const safeUsers = users.map(u => ({
-        id: u.id,
-        username: u.username,
-        created_at: u.created_at
-    }));
-
-    return NextResponse.json(safeUsers);
+    const users = getAllUsersSafe();
+    return NextResponse.json(users);
 }
 
 export async function POST(req: NextRequest) {
@@ -31,26 +24,42 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-        const { username, password } = await req.json();
-
-        if (!username || !password || password.length < 8) {
-            return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
+        const body = await req.json();
+        
+        // Validate request body
+        const validationResult = createUserSchema.safeParse(body);
+        if (!validationResult.success) {
+            return NextResponse.json(
+                { error: validationResult.error.issues[0]?.message || 'Invalid input' },
+                { status: 400 }
+            );
         }
 
-        if (getUserByUsername(username)) {
-            return NextResponse.json({ error: 'Username already taken' }, { status: 400 });
-        }
+        const { username, password } = validationResult.data;
 
+        // Hash password first
         const passHash = await hashPassword(password);
-        const newUser = createUser(username, passHash);
+        
+        try {
+            // createUser handles race conditions internally
+            const newUser = createUser(username, passHash);
 
-        return NextResponse.json({
-            id: newUser.id,
-            username: newUser.username,
-            created_at: newUser.created_at
-        });
+            return NextResponse.json({
+                id: newUser.id,
+                username: newUser.username,
+                created_at: newUser.created_at
+            });
+        } catch (e: any) {
+            // Handle unique constraint violation
+            if (e.message === 'Username already exists' || e.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+                return NextResponse.json({ error: 'Username already taken' }, { status: 400 });
+            }
+            console.error('User operation error:', e);
+            return NextResponse.json({ error: 'An error occurred' }, { status: 500 });
+        }
     } catch (e: any) {
-        return NextResponse.json({ error: e.message }, { status: 500 });
+        console.error('User operation error:', e);
+        return NextResponse.json({ error: 'An error occurred' }, { status: 500 });
     }
 }
 
@@ -66,15 +75,27 @@ export async function DELETE(req: NextRequest) {
         // For self-delete protection, we need to know current user ID from session.
         // Assuming middleware handles session, but here we can just do basic checks.
 
-        const users = getAllUsers();
-        if (users.length <= 1) {
+        // Validate id is a number
+        if (typeof id !== 'number' || !Number.isInteger(id) || id <= 0) {
+            return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
+        }
+
+        const userToDelete = getUserById(id);
+        if (!userToDelete) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+
+        // Check user count before deletion (atomic check)
+        const userCount = getUserCount();
+        if (userCount <= 1) {
             return NextResponse.json({ error: 'Cannot delete the last user' }, { status: 400 });
         }
 
         deleteUser(id);
         return NextResponse.json({ success: true });
     } catch (e: any) {
-        return NextResponse.json({ error: e.message }, { status: 500 });
+        console.error('User operation error:', e);
+        return NextResponse.json({ error: 'An error occurred' }, { status: 500 });
     }
 }
 
@@ -84,12 +105,18 @@ export async function PUT(req: NextRequest) {
     }
 
     try {
-        const { id, password } = await req.json();
-
-        if (!id || !password || password.length < 8) {
-            return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
+        const body = await req.json();
+        
+        // Validate request body
+        const validationResult = changePasswordSchema.safeParse(body);
+        if (!validationResult.success) {
+            return NextResponse.json(
+                { error: validationResult.error.issues[0]?.message || 'Invalid input' },
+                { status: 400 }
+            );
         }
 
+        const { id, password } = validationResult.data;
         const user = getUserById(id);
         if (!user) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -100,6 +127,7 @@ export async function PUT(req: NextRequest) {
 
         return NextResponse.json({ success: true });
     } catch (e: any) {
-        return NextResponse.json({ error: e.message }, { status: 500 });
+        console.error('User operation error:', e);
+        return NextResponse.json({ error: 'An error occurred' }, { status: 500 });
     }
 }

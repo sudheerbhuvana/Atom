@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { getCurrentUser } from '@/lib/auth';
 
 export async function GET() {
+    const user = await getCurrentUser();
+    if (!user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     try {
         const DATA_DIR = process.env.DATA_DIR || './data';
         const DB_PATH = path.join(DATA_DIR, 'atom.db');

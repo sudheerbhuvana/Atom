@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Routes that don't require authentication
-const publicRoutes = ['/login', '/onboard', '/api/auth', '/api/config'];
+// Note: /api/config GET is public for initial setup, but POST requires auth (checked in route)
+const publicRoutes = ['/login', '/onboard', '/api/auth'];
 
 export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;

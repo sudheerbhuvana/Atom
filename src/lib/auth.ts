@@ -32,9 +32,10 @@ export async function login(username: string, password: string): Promise<{ succe
 
     // Set cookie
     const cookieStore = await cookies();
+    const isSecure = process.env.NODE_ENV === 'production' || process.env.COOKIE_SECURE === 'true';
     cookieStore.set(SESSION_COOKIE, session.id, {
         httpOnly: true,
-        secure: false, // process.env.NODE_ENV === 'production', // Allow HTTP for self-hosted LAN
+        secure: isSecure,
         sameSite: 'lax',
         expires: new Date(session.expires_at),
         path: '/',
@@ -69,29 +70,34 @@ export async function getCurrentUser() {
 }
 
 export async function register(username: string, password: string): Promise<{ success: boolean; error?: string }> {
-    // Check if user exists
-    const existing = getUserByUsername(username);
-    if (existing) {
-        return { success: false, error: 'Username already exists' };
-    }
-
-    // Hash password and create user
+    // Hash password first (before DB check to prevent timing attacks)
     const hash = await hashPassword(password);
-    const user = createUser(username, hash);
+    
+    try {
+        // createUser will throw if username exists (prevents race condition)
+        const user = createUser(username, hash);
 
-    // Auto-login after registration
-    const session = createSession(user.id);
+        // Auto-login after registration
+        const session = createSession(user.id);
 
-    const cookieStore = await cookies();
-    cookieStore.set(SESSION_COOKIE, session.id, {
-        httpOnly: true,
-        secure: false, // process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        expires: new Date(session.expires_at),
-        path: '/',
-    });
+        const cookieStore = await cookies();
+        const isSecure = process.env.NODE_ENV === 'production' || process.env.COOKIE_SECURE === 'true';
+        cookieStore.set(SESSION_COOKIE, session.id, {
+            httpOnly: true,
+            secure: isSecure,
+            sameSite: 'lax',
+            expires: new Date(session.expires_at),
+            path: '/',
+        });
 
-    return { success: true };
+        return { success: true };
+    } catch (error: any) {
+        // Handle unique constraint violation (username already exists)
+        if (error.message === 'Username already exists' || error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+            return { success: false, error: 'Username already exists' };
+        }
+        throw error; // Re-throw unexpected errors
+    }
 }
 
 export function needsOnboarding(): boolean {

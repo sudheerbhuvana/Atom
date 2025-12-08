@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import Docker from 'dockerode';
+import { getCurrentUser } from '@/lib/auth';
 
 // Initialize Docker client
 // Support both Windows (local dev) and Linux (production)
@@ -28,18 +29,24 @@ function formatUptime(startedAt: string) {
 }
 
 export async function GET() {
+    const user = await getCurrentUser();
+    if (!user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     try {
         const containers = await docker.listContainers();
 
         const promises = containers.map(async (containerInfo) => {
-            const container = docker.getContainer(containerInfo.Id);
+            try {
+                const container = docker.getContainer(containerInfo.Id);
 
-            // Get stats (stream: false makes it a single snapshot)
-            // Note: Docker stats API can be slow if parallelized too much
-            const stats = await container.stats({ stream: false });
+                // Get stats (stream: false makes it a single snapshot)
+                // Note: Docker stats API can be slow if parallelized too much
+                const stats = await container.stats({ stream: false });
 
-            // Inspect to get full details like startedAt
-            const inspect = await container.inspect();
+                // Inspect to get full details like startedAt
+                const inspect = await container.inspect();
 
             // CPU Calculation
             let cpuPercent = 0.0;
@@ -87,6 +94,24 @@ export async function GET() {
                 memPercent: parseFloat(memPercent.toFixed(2)),
                 ports: ports
             };
+            } catch (containerError) {
+                // Handle individual container errors gracefully
+                console.error(`Error fetching stats for container ${containerInfo.Id}:`, containerError);
+                return {
+                    id: containerInfo.Id.substring(0, 12),
+                    name: containerInfo.Names[0]?.replace(/^\//, '') || 'unknown',
+                    image: containerInfo.Image || 'unknown',
+                    state: containerInfo.State || 'unknown',
+                    status: 'Error',
+                    cpu: 0,
+                    memory: '0 B',
+                    memPercent: 0,
+                    ports: containerInfo.Ports
+                        ?.filter(p => p.PublicPort)
+                        .map(p => `${p.PublicPort}->${p.PrivatePort}`)
+                        .join(', ') || ''
+                };
+            }
         });
 
         const results = await Promise.all(promises);
@@ -104,7 +129,7 @@ export async function GET() {
         }
 
         return NextResponse.json(
-            { error: 'Failed to fetch docker stats', details: error.message },
+            { error: 'Failed to fetch docker stats' },
             { status: 500 }
         );
     }

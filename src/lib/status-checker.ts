@@ -62,6 +62,7 @@ export async function checkServiceStatus(urlString: string): Promise<StatusResul
                     redirect: 'follow'
                 });
 
+                // Always clear timeout to prevent memory leaks
                 clearTimeout(timeoutId);
                 const latency = Date.now() - start;
 
@@ -76,11 +77,13 @@ export async function checkServiceStatus(urlString: string): Promise<StatusResul
                     method: 'fetch'
                 };
             } catch (fetchErr) {
+                // Ensure timeout is cleared even on error
+                clearTimeout(timeoutId);
                 return {
                     up: false,
                     status: 0,
                     error: (fetchErr as Error).message,
-                    latency: 0,
+                    latency: Date.now() - start, // Calculate latency even on error
                     method: 'fetch'
                 };
             }

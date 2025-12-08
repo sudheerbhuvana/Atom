@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import si from 'systeminformation';
 import { SystemStats } from '@/types';
+import { getCurrentUser } from '@/lib/auth';
 
 // Cache stats briefly to prevent system overload
 let cachedStats: SystemStats | null = null;
@@ -8,6 +9,11 @@ let lastFetchTime = 0;
 const CACHE_DURATION = 2000; // 2 seconds
 
 export async function GET() {
+    const user = await getCurrentUser();
+    if (!user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const now = Date.now();
 
     if (cachedStats && (now - lastFetchTime < CACHE_DURATION)) {

@@ -1,17 +1,21 @@
 import { NextResponse } from 'next/server';
 import { login } from '@/lib/auth';
+import { loginSchema } from '@/lib/validation';
 
 export async function POST(request: Request) {
     try {
-        const { username, password } = await request.json();
-
-        if (!username || !password) {
+        const body = await request.json();
+        
+        // Validate request body
+        const validationResult = loginSchema.safeParse(body);
+        if (!validationResult.success) {
             return NextResponse.json(
-                { error: 'Username and password required' },
+                { error: validationResult.error.issues[0]?.message || 'Invalid input' },
                 { status: 400 }
             );
         }
 
+        const { username, password } = validationResult.data;
         const result = await login(username, password);
 
         if (!result.success) {
