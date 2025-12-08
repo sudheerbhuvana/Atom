@@ -1,5 +1,20 @@
 'use client';
 
+import { useEffect, useState, useRef } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Search, Grid3X3, Grid2X2, List as ListIcon } from 'lucide-react';
+import { AppConfig } from '@/types';
+import ServiceCard from './ServiceCard';
+import SystemStatsWidget from './SystemStats';
+import DockerWidget from './DockerWidget';
+import ShortcutsModal from './ShortcutsModal';
+import ClockWidget from './ClockWidget';
+import { useStatus } from '@/context/StatusContext';
+import styles from './Dashboard.module.css';
+
+import { useConfig } from '@/context/ConfigContext';
+
 
 export default function Dashboard() {
     const { config, updateConfig, loading } = useConfig();
@@ -141,21 +156,62 @@ export default function Dashboard() {
             <header className={styles.header}>
                 <div className={styles.greeting}>
                     <div className={styles.date}>
-                        placeholder={`Search ${config.searchEngine || 'Google'}...`}
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                />
-                        <span className={styles.searchHint}>{config.searchEngine || 'Google'} &gt;</span>
+                        {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                     </div>
-
-                    {/* Content Grid */}
-                    <div className={`${styles.contentGrid} ${config.layout?.showWidgets === false ? styles.fullWidth : ''}`}>
-                        <SystemStatsWidget />
-                    </div>
-                        )}
+                    <h1 className={styles.title}>
+                        {config.title || 'Atom'}
+                    </h1>
+                    <p className={styles.subtitle}>
+                        {getGreeting()}, {config.user?.name || 'User'}!
+                    </p>
                 </div>
-                )
-}
+                <ClockWidget
+                    weatherLocation={config.weather?.location}
+                    onShowShortcuts={() => setShowShortcuts(true)}
+                    onRefresh={handleRefresh}
+                />
+            </header>
+
+            {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
+
+            {/* Search */}
+            <div className={styles.searchBar}>
+                <Search className={styles.searchIcon} size={20} />
+                <input
+                    ref={searchRef}
+                    placeholder={`Search ${config.searchEngine || 'Google'}...`}
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                />
+                <span className={styles.searchHint}>{config.searchEngine || 'Google'} &gt;</span>
+            </div>
+
+            {/* Content Grid */}
+            <div className={`${styles.contentGrid} ${config.layout?.showWidgets === false ? styles.fullWidth : ''}`}>
+                {/* Left Col: Widgets (Conditional) */}
+                {config.layout?.showWidgets !== false && (
+                    <div className={styles.leftCol}>
+                        {config.widgets?.map(widget => (
+                            <div key={widget.id} style={{ marginBottom: '2rem' }}>
+                                <h2 className={styles.sectionHeader}>{widget.title || 'Widget'}</h2>
+                                {widget.type === 'system-monitor' && <SystemStatsWidget />}
+                            </div>
+                        ))}
+                        {/* Fallback if widgets array is missing but showWidgets is true/undefined */}
+                        {(!config.widgets || config.widgets.length === 0) && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                                <div>
+                                    <h2 className={styles.sectionHeader}>System Monitor</h2>
+                                    <SystemStatsWidget />
+                                </div>
+                                <div>
+                                    <h2 className={styles.sectionHeader}>Docker</h2>
+                                    <DockerWidget />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Right Col: Applications & Bookmarks */}
                 <div className={styles.rightCol}>
@@ -234,7 +290,7 @@ export default function Dashboard() {
                         </div>
                     )}
                 </div>
-        </div >
-        </div >
+            </div>
+        </div>
     );
 }
