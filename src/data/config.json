@@ -1,0 +1,142 @@
+{
+  "title": "ATOM",
+  "theme": {
+    "primaryColor": "#00ff43",
+    "backgroundColor": "#0a0a0a"
+  },
+  "layout": {
+    "columns": 6,
+    "gap": 18,
+    "showWidgets": false,
+    "fullSizeButtons": true,
+    "style": "grid",
+    "containerWidth": "centered"
+  },
+  "services": [
+    {
+      "id": "1",
+      "name": "Plex",
+      "url": "http://192.168.1.100:32400",
+      "description": "Your personal media server",
+      "category": "Media",
+      "icon": "plex"
+    },
+    {
+      "id": "2",
+      "name": "Jellyfin",
+      "url": "http://192.168.1.100:8096",
+      "description": "Open-source alternative to Plex",
+      "category": "Media",
+      "icon": "play"
+    },
+    {
+      "id": "3",
+      "name": "qBittorrent",
+      "url": "http://192.168.1.102:8080",
+      "description": "Torrent management",
+      "category": "Media",
+      "icon": "download"
+    },
+    {
+      "id": "4",
+      "name": "Proxmox",
+      "url": "https://192.168.1.10:8006",
+      "description": "VM & Container management",
+      "category": "Infrastructure",
+      "icon": "proxmox"
+    },
+    {
+      "id": "5",
+      "name": "Portainer",
+      "url": "http://192.168.1.11:9000",
+      "description": "Docker container control center",
+      "category": "Infrastructure",
+      "icon": "docker"
+    },
+    {
+      "id": "6",
+      "name": "Pi-hole",
+      "url": "http://192.168.1.101/admin",
+      "description": "Network-wide ad blocking",
+      "category": "Network",
+      "icon": "pihole"
+    },
+    {
+      "id": "7",
+      "name": "Tailscale",
+      "url": "https://login.tailscale.com/admin",
+      "description": "Secure remote access VPN",
+      "category": "Network",
+      "icon": "tailscale"
+    },
+    {
+      "id": "8",
+      "name": "Grafana",
+      "url": "http://192.168.1.12:3000",
+      "description": "Metrics & Visualization",
+      "category": "Monitoring",
+      "icon": "grafana"
+    },
+    {
+      "id": "9",
+      "name": "Prometheus",
+      "url": "http://192.168.1.12:9090",
+      "description": "System metrics collector",
+      "category": "Monitoring",
+      "icon": "prometheus"
+    },
+    {
+      "id": "10",
+      "name": "Coolify",
+      "url": "https://coolify.local",
+      "description": "Deploy your apps easily",
+      "category": "DevOps",
+      "icon": "box"
+    },
+    {
+      "id": "11",
+      "name": "GitHub",
+      "url": "https://github.com/sudheerbhuvana",
+      "description": "My code and projects",
+      "category": "DevOps",
+      "icon": "github"
+    },
+    {
+      "id": "12",
+      "name": "ZeroOne Club",
+      "url": "https://zeroonedevs.in",
+      "description": "Code club homepage",
+      "category": "Community",
+      "icon": "users"
+    }
+  ],
+  "links": [
+    {
+      "id": "l1",
+      "title": "GitHub",
+      "url": "https://github.com"
+    },
+    {
+      "id": "l2",
+      "title": "Reddit",
+      "url": "https://reddit.com"
+    },
+    {
+      "id": "l3",
+      "title": "Coolify Panel",
+      "url": "https://coolify.local"
+    },
+    {
+      "id": "l4",
+      "title": "Oracle Cloud",
+      "url": "https://cloud.oracle.com/"
+    }
+  ],
+  "user": {
+    "name": "Sudheer"
+  },
+  "weather": {
+    "location": "Vijayawada"
+  },
+  "searchEngine": "Google"
+}

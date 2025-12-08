@@ -1,0 +1,208 @@
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal {
+    background: var(--bg-card);
+    border: 1px solid var(--accent-color);
+    width: 90%;
+    max-width: 500px;
+    border-radius: var(--radius-md);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+}
+
+.header {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.2rem;
+    color: var(--accent-color);
+}
+
+.closeBtn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.closeBtn:hover {
+    color: var(--error-color);
+}
+
+.tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tabs button {
+    flex: 1;
+    padding: 0.75rem;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+}
+
+.tabs button.activeTab {
+    color: var(--text-primary);
+    border-bottom-color: var(--accent-color);
+}
+
+.body {
+    padding: 1rem;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.footer {
+    padding: 1rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.saveBtn {
+    background: var(--accent-color);
+    color: #000;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.saveBtn:hover {
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+
+/* Services */
+.serviceList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.serviceItem {
+    background: var(--bg-secondary);
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+}
+
+.serviceView {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.actions button {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px;
+}
+
+.actions button:hover {
+    color: var(--text-primary);
+}
+
+.deleteBtn:hover {
+    color: var(--error-color) !important;
+}
+
+.editForm {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.editForm input,
+.generalForm input {
+    background: #000;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+}
+
+.editForm input:focus,
+.generalForm input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.addBtn {
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: #333;
+    color: #fff;
+    border: none;
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+
+.addBtn:hover {
+    background: #444;
+}
+
+.doneBtn {
+    align-self: flex-end;
+    background: #333;
+    color: #fff;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+}
+
+/* General */
+.generalForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.generalForm label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+}

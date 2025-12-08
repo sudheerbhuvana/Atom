@@ -1,0 +1,356 @@
+.wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+    width: 100%;
+}
+
+.wrapperFull {
+    max-width: 100%;
+    margin: 0;
+    padding: 4rem 3rem;
+    width: 100%;
+}
+
+.wrapperCompact {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+    width: 100%;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2rem;
+}
+
+.date {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin-top: 0.2rem;
+    font-weight: 500;
+}
+
+/* Clock Widget Desktop */
+.clockWidget {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+}
+
+.widgetRow {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+}
+
+.widgetControls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.weatherIcon {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.weatherPlaceholder {
+    color: var(--text-muted);
+    opacity: 0.5;
+}
+
+.clock {
+    font-size: 1.5rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+/* ... existing searchBar styles ... */
+
+/* Mobile Clock Widget Override */
+@media (max-width: 768px) {
+    .clockWidget {
+        width: 100%;
+        align-items: flex-start;
+        /* Align left on mobile */
+        gap: 1rem;
+    }
+
+    .widgetRow {
+        flex-direction: row;
+        /* Side by side on mobile */
+        align-items: center;
+        gap: 1rem;
+        width: 100%;
+    }
+
+    .widgetControls {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .clock {
+        font-size: 1.25rem;
+    }
+}
+
+/* Search */
+.searchBar {
+    background: var(--bg-card);
+    border-radius: 999px;
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+    border: 1px solid var(--border-color);
+    transition: border-color var(--transition-fast);
+}
+
+.searchBar:focus-within {
+    border-color: var(--text-secondary);
+}
+
+.searchIcon {
+    color: var(--text-secondary);
+}
+
+.searchBar input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    outline: none;
+}
+
+.searchHint {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* Grid */
+.contentGrid {
+    display: grid;
+    gap: 3rem;
+}
+
+.sectionHeader {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+.leftCol {
+    min-width: 300px;
+}
+
+.rightCol {
+    flex: 1;
+}
+
+.appList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.75rem;
+}
+
+.appList.list {
+    grid-template-columns: 1fr;
+}
+
+.appList.grid4 {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+.appList.grid6 {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+
+@media (min-width: 1400px) {
+    .appList.grid4 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .appList.grid6 {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+@media (max-width: 1024px) {
+
+    .appList.grid6,
+    .appList.grid4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+
+    .appList.grid6,
+    .appList.grid4 {
+        grid-template-columns: 1fr;
+    }
+}
+
+.layoutControls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.layoutBtn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+}
+
+.layoutBtn:hover,
+.layoutBtn.active {
+    color: var(--text-primary);
+    background: var(--bg-hover);
+}
+
+/* Footer */
+.footer {
+    margin-top: 4rem;
+}
+
+/* Empty State */
+.emptyState {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+}
+
+.emptyState p {
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.searchWebBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    background: #222222;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.searchWebBtn:hover {
+    background: #2a2a2a;
+}
+
+.settingsBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.settingsBtn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+@media (min-width: 1024px) {
+    .contentGrid:not(.fullWidth) {
+        grid-template-columns: 350px 1fr;
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .wrapper {
+        padding: 2rem 1rem;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    /* Old overrides removed, handled in main block above */
+    .title {
+        font-size: 1.35rem;
+        /* Smaller, cleaner title */
+        line-height: 1.2;
+    }
+
+    .subtitle {
+        font-size: 1rem;
+        /* Smaller subtitle */
+    }
+
+    .date {
+        font-size: 0.8rem;
+    }
+
+    .clock {
+        font-size: 1.1rem;
+        /* Balance with weather */
+        font-weight: 500;
+    }
+
+    .searchBar {
+        padding: 0.6rem 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .searchBar input {
+        font-size: 1rem;
+    }
+
+    .searchHint {
+        display: none;
+    }
+
+    /* Hide layout controls on mobile */
+    .layoutControls {
+        display: none;
+    }
+
+    .sectionTitle {
+        font-size: 1rem;
+    }
+
+    .appList {
+        grid-template-columns: 1fr !important;
+    }
+}

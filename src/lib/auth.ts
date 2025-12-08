@@ -1,0 +1,108 @@
+import bcrypt from 'bcryptjs';
+import { cookies } from 'next/headers';
+import { createSession, getSessionWithUser, deleteSession, getUserByUsername, createUser, getUserCount, updateUserPassword } from './db';
+
+const SALT_ROUNDS = 10;
+const SESSION_COOKIE = 'atom_session';
+
+// Password utilities
+export async function hashPassword(password: string): Promise<string> {
+    return bcrypt.hash(password, SALT_ROUNDS);
+}
+
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+    return bcrypt.compare(password, hash);
+}
+
+// Auth utilities
+export async function login(username: string, password: string): Promise<{ success: boolean; error?: string }> {
+    const user = getUserByUsername(username);
+
+    if (!user) {
+        return { success: false, error: 'Invalid credentials' };
+    }
+
+    const valid = await verifyPassword(password, user.password_hash);
+    if (!valid) {
+        return { success: false, error: 'Invalid credentials' };
+    }
+
+    // Create session
+    const session = createSession(user.id);
+
+    // Set cookie
+    const cookieStore = await cookies();
+    cookieStore.set(SESSION_COOKIE, session.id, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        expires: new Date(session.expires_at),
+        path: '/',
+    });
+
+    return { success: true };
+}
+
+export async function logout(): Promise<void> {
+    const cookieStore = await cookies();
+    const sessionId = cookieStore.get(SESSION_COOKIE)?.value;
+
+    if (sessionId) {
+        deleteSession(sessionId);
+        cookieStore.delete(SESSION_COOKIE);
+    }
+}
+
+export async function getCurrentUser() {
+    const cookieStore = await cookies();
+    const sessionId = cookieStore.get(SESSION_COOKIE)?.value;
+
+    if (!sessionId) return null;
+
+    const session = getSessionWithUser(sessionId);
+    if (!session) return null;
+
+    return {
+        id: session.user.id,
+        username: session.user.username,
+    };
+}
+
+export async function register(username: string, password: string): Promise<{ success: boolean; error?: string }> {
+    // Check if user exists
+    const existing = getUserByUsername(username);
+    if (existing) {
+        return { success: false, error: 'Username already exists' };
+    }
+
+    // Hash password and create user
+    const hash = await hashPassword(password);
+    const user = createUser(username, hash);
+
+    // Auto-login after registration
+    const session = createSession(user.id);
+
+    const cookieStore = await cookies();
+    cookieStore.set(SESSION_COOKIE, session.id, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        expires: new Date(session.expires_at),
+        path: '/',
+    });
+
+    return { success: true };
+}
+
+export function needsOnboarding(): boolean {
+    return getUserCount() === 0;
+}
+
+export async function resetPassword(username: string, newPassword: string): Promise<boolean> {
+    const user = getUserByUsername(username);
+    if (!user) return false;
+
+    const hash = await hashPassword(newPassword);
+    updateUserPassword(user.id, hash);
+    return true;
+}
