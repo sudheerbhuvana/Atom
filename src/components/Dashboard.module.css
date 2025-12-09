@@ -1,29 +1,83 @@
 .wrapper {
-    max-width: 1200px;
+    max-width: 1400px;
+    /* Increased max-width */
     margin: 0 auto;
-    padding: 4rem 2rem;
     width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* Prevent body scroll */
 }
 
 .wrapperFull {
     max-width: 100%;
     margin: 0;
-    padding: 4rem 3rem;
     width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .wrapperCompact {
     max-width: 900px;
     margin: 0 auto;
-    padding: 4rem 2rem;
     width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
+/* Header Section */
 .header {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    margin-bottom: 2rem;
+    padding: 2rem 2rem 1rem 2rem;
+    /* Add padding here */
+    flex-shrink: 0;
+    /* Prevent shrinking */
+}
+
+/* Search Section - Make it part of the fixed top area */
+.searchBarContainer {
+    padding: 0 2rem 1rem 2rem;
+    flex-shrink: 0;
+}
+
+.searchBar {
+    background: var(--bg-card);
+    border-radius: 999px;
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border: 1px solid var(--border-color);
+    transition: border-color var(--transition-fast);
+}
+
+.searchBar:focus-within {
+    border-color: var(--text-secondary);
+}
+
+.searchIcon {
+    color: var(--text-secondary);
+}
+
+.searchBar input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    outline: none;
+}
+
+.searchHint {
+    color: var(--text-muted);
+    font-size: 0.9rem;
 }
 
 .date {
@@ -45,7 +99,6 @@
     font-weight: 500;
 }
 
-/* Clock Widget Desktop */
 .clockWidget {
     display: flex;
     flex-direction: column;
@@ -85,74 +138,17 @@
     line-height: 1;
 }
 
-/* ... existing searchBar styles ... */
-
-/* Mobile Clock Widget Override */
-@media (max-width: 768px) {
-    .clockWidget {
-        width: 100%;
-        align-items: flex-start;
-        /* Align left on mobile */
-        gap: 1rem;
-    }
-
-    .widgetRow {
-        flex-direction: row;
-        /* Side by side on mobile */
-        align-items: center;
-        gap: 1rem;
-        width: 100%;
-    }
-
-    .widgetControls {
-        width: 100%;
-        flex-wrap: wrap;
-    }
-
-    .clock {
-        font-size: 1.25rem;
-    }
-}
-
-/* Search */
-.searchBar {
-    background: var(--bg-card);
-    border-radius: 999px;
-    padding: 0.75rem 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 2.5rem;
-    border: 1px solid var(--border-color);
-    transition: border-color var(--transition-fast);
-}
-
-.searchBar:focus-within {
-    border-color: var(--text-secondary);
-}
-
-.searchIcon {
-    color: var(--text-secondary);
-}
-
-.searchBar input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: var(--text-primary);
-    font-size: 1.1rem;
-    outline: none;
-}
-
-.searchHint {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-}
-
-/* Grid */
+/* Scrollable Content */
+/* Scrollable Content */
 .contentGrid {
     display: grid;
-    gap: 3rem;
+    gap: 2rem;
+    flex: 1;
+    overflow: hidden;
+    /* Parent doesn't scroll */
+    padding: 0;
+    /* Remove padding from grid */
+    height: 100%;
 }
 
 .sectionHeader {
@@ -162,11 +158,30 @@
 }
 
 .leftCol {
-    min-width: 300px;
+    min-width: 350px;
+    overflow-y: auto;
+    height: 100%;
+    padding: 1rem 0 4rem 2rem;
+    /* Left padding */
+
+    /* Hide scrollbar */
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
+}
+
+/* Chrome, Safari, Opera */
+.leftCol::-webkit-scrollbar {
+    display: none;
 }
 
 .rightCol {
     flex: 1;
+    overflow-y: auto;
+    height: 100%;
+    padding: 1rem 2rem 4rem 1rem;
+    /* Right padding */
 }
 
 .appList {
@@ -307,60 +322,129 @@
 /* Mobile Responsive */
 @media (max-width: 768px) {
     .wrapper {
-        padding: 2rem 1rem;
+        padding: 1.5rem 1.5rem;
+        /* Slightly more side padding */
+        height: auto;
+        overflow: visible;
+        display: block;
+    }
+
+    .wrapperFull,
+    .wrapperCompact {
+        padding: 1.5rem 1.5rem;
+        /* Force matching padding */
+        height: auto;
+        overflow: visible;
+        display: block;
+        max-width: 100%;
+        /* Reset max-width logic */
+        margin: 0;
+    }
+
+    .contentGrid {
+        height: auto;
+        overflow: visible;
+        display: block;
+        padding: 0;
+        margin-top: 1rem;
+        /* Extra breathing room */
+        gap: 3rem;
+        /* Restore gap between sections */
+    }
+
+    .leftCol,
+    .rightCol {
+        height: auto;
+        overflow: visible;
+        padding: 0;
+    }
+
+    /* Ensure specific gap between widgets and apps if stacked */
+    .leftCol {
+        margin-bottom: 3rem;
+    }
+
+    .searchBarContainer {
+        padding: 0;
     }
 
     .header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 1rem;
+        gap: 1.5rem;
+        padding: 0 0 1rem 0;
     }
 
-    /* Old overrides removed, handled in main block above */
     .title {
-        font-size: 1.35rem;
-        /* Smaller, cleaner title */
+        font-size: 1.75rem;
+        /* Larger title */
         line-height: 1.2;
     }
 
     .subtitle {
-        font-size: 1rem;
-        /* Smaller subtitle */
+        font-size: 1.1rem;
+        margin-top: 0.25rem;
     }
 
     .date {
-        font-size: 0.8rem;
+        font-size: 0.85rem;
+        opacity: 0.8;
+        margin-bottom: 0.25rem;
+    }
+
+    .clockWidget {
+        width: 100%;
+        align-items: flex-start;
+        flex-direction: row;
+        /* Horizontal clock/weather */
+        justify-content: space-between;
+        align-items: flex-end;
+        /* Align bottom */
+        margin-top: 0.5rem;
+    }
+
+    .widgetRow {
+        flex-direction: column;
+        /* Stack stats */
+        align-items: flex-start;
+        gap: 0.25rem;
     }
 
     .clock {
-        font-size: 1.1rem;
-        /* Balance with weather */
-        font-weight: 500;
+        font-size: 1.5rem;
     }
 
     .searchBar {
-        padding: 0.6rem 1rem;
-        margin-bottom: 1.5rem;
+        padding: 0.8rem 1.25rem;
+        margin-bottom: 3rem;
+        /* significantly more space */
     }
 
     .searchBar input {
         font-size: 1rem;
     }
 
+    .searchIcon {
+        width: 18px;
+        height: 18px;
+    }
+
     .searchHint {
         display: none;
     }
 
-    /* Hide layout controls on mobile */
     .layoutControls {
         display: none;
     }
 
-    .sectionTitle {
-        font-size: 1rem;
+    .sectionHeader {
+        font-size: 1.35rem;
+        /* Larger section headers */
+        margin-bottom: 1.5rem;
     }
 
     .appList {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.75rem;
     }
 }

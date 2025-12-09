@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, Grid3X3, Grid2X2, List as ListIcon } from 'lucide-react';
+import { Search, Grid3X3, Grid2X2, List as ListIcon, ChevronRight } from 'lucide-react';
 import { AppConfig } from '@/types';
 import ServiceCard from './ui/ServiceCard';
 import SystemStatsWidget from './widgets/SystemStats';
@@ -111,10 +111,7 @@ export default function Dashboard() {
 
     const handleRefresh = async () => {
         if (!config) return;
-        const handleRefresh = async () => {
-            if (!config) return;
-            await refreshAll(config.services);
-        };
+        await refreshAll(config.services);
     };
 
     if (loading || !config) return <div className={styles.loader}>Loading...</div>;
@@ -186,7 +183,9 @@ export default function Dashboard() {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
-                <span className={styles.searchHint}>{config.searchEngine || 'Google'} &gt;</span>
+                <span className={styles.searchHint}>
+                    {config.searchEngine || 'Google'} <ChevronRight size={14} style={{ opacity: 0.5 }} />
+                </span>
             </div>
 
             {/* Content Grid */}

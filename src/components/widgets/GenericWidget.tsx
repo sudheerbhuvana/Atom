@@ -30,7 +30,7 @@ const getNestedValue = (obj: any, path: string) => {
 const formatValue = (value: any, format?: string, suffix?: string) => {
     if (value === undefined || value === null) return '-';
 
-    let formatted = value;
+    let formatted: string | number = value;
 
     if (format === 'bytes') {
         const bytes = Number(value);
@@ -45,8 +45,19 @@ const formatValue = (value: any, format?: string, suffix?: string) => {
         formatted = new Intl.NumberFormat().format(Number(value));
     }
 
-    if (suffix && format !== 'bytes' && format !== 'percent') {
-        formatted = `${formatted}${suffix}`;
+    if (suffix) {
+        if (suffix.trim() === '>' || suffix.trim() === '->') {
+            return (
+                <span className="flex items-center gap-1">
+                    {formatted} <LucideIcons.ChevronRight size={12} className="opacity-70" />
+                </span>
+            );
+        }
+        return (
+            <span>
+                {formatted}<span className="text-muted-foreground text-[0.8em] ml-0.5">{suffix}</span>
+            </span>
+        );
     }
 
     return formatted;
