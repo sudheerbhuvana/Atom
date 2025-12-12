@@ -27,7 +27,7 @@ Atom is a modern, self-hosted dashboard and monitoring tool designed for simplic
 ## Getting Started
 
 ### Prerequisites
-
+ 
 *   Node.js 18+
 *   Docker (optional, for Docker widget support)
 
