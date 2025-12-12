@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import WidgetContainer from './WidgetContainer';
 import WidgetBlock from './WidgetBlock';
-import { LucideIcon, icons } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 
 export interface FieldMapping {
@@ -23,18 +22,23 @@ export interface GenericWidgetProps {
 }
 
 // Helper to safely get nested value
-const getNestedValue = (obj: any, path: string) => {
-    return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+const getNestedValue = (obj: unknown, path: string): unknown => {
+    return path.split('.').reduce((acc, part) => {
+        if (acc && typeof acc === 'object') {
+            return (acc as Record<string, unknown>)[part];
+        }
+        return undefined;
+    }, obj);
 };
 
-const formatValue = (value: any, format?: string, suffix?: string) => {
+const formatValue = (value: unknown, format?: string, suffix?: string) => {
     if (value === undefined || value === null) return '-';
 
-    let formatted: string | number = value;
+    let formatted: string | number = (typeof value === 'string' || typeof value === 'number') ? value : String(value);
 
     if (format === 'bytes') {
         const bytes = Number(value);
-        if (isNaN(bytes)) return value;
+        if (isNaN(bytes)) return formatted;
         const k = 1024;
         const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -71,12 +75,12 @@ export default function GenericWidget({
     fields,
     refreshInterval = 10000
 }: GenericWidgetProps) {
-    const [data, setData] = useState<any>(null);
+    const [data, setData] = useState<unknown>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
     // Resolve Icon
-    const IconComponent = icon ? (LucideIcons as any)[icon] : null;
+    const IconComponent = icon ? (LucideIcons as unknown as Record<string, React.ElementType>)[icon] : null;
 
     useEffect(() => {
         const fetchData = async () => {
@@ -91,9 +95,10 @@ export default function GenericWidget({
                 const json = await res.json();
                 setData(json);
                 setError(null);
-            } catch (err: any) {
+            } catch (err: unknown) {
+                const errorMessage = err instanceof Error ? err.message : String(err);
                 console.error(`Failed to fetch widget data for ${title}:`, err);
-                setError(err.message || 'Fetch failed');
+                setError(errorMessage || 'Fetch failed');
             } finally {
                 setLoading(false);
             }

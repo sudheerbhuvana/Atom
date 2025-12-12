@@ -88,11 +88,11 @@ export async function checkServiceStatus(urlString: string): Promise<StatusResul
                 };
             }
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         return {
             up: false,
             status: 0,
-            error: error.message,
+            error: error instanceof Error ? error.message : String(error),
             latency: 0,
             method: 'fetch'
         };

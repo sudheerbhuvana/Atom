@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllUsersSafe, createUser, deleteUser, updateUserPassword, getUserByUsername, getUserById, getUserCount } from '@/lib/db';
+import { getAllUsersSafe, createUser, deleteUser, updateUserPassword, getUserById, getUserCount } from '@/lib/db';
 import { hashPassword, getCurrentUser } from '@/lib/auth';
 import { createUserSchema, changePasswordSchema } from '@/lib/validation';
 
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
 
     try {
         const body = await req.json();
-        
+
         // Validate request body
         const validationResult = createUserSchema.safeParse(body);
         if (!validationResult.success) {
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 
         // Hash password first
         const passHash = await hashPassword(password);
-        
+
         try {
             // createUser handles race conditions internally
             const newUser = createUser(username, passHash);
@@ -49,15 +49,17 @@ export async function POST(req: NextRequest) {
                 username: newUser.username,
                 created_at: newUser.created_at
             });
-        } catch (e: any) {
+        } catch (e: unknown) {
             // Handle unique constraint violation
-            if (e.message === 'Username already exists' || e.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+            const errorMsg = e instanceof Error ? e.message : '';
+            const errorCode = (e as { code?: string }).code;
+            if (errorMsg === 'Username already exists' || errorCode === 'SQLITE_CONSTRAINT_UNIQUE') {
                 return NextResponse.json({ error: 'Username already taken' }, { status: 400 });
             }
             console.error('User operation error:', e);
             return NextResponse.json({ error: 'An error occurred' }, { status: 500 });
         }
-    } catch (e: any) {
+    } catch (e: unknown) {
         console.error('User operation error:', e);
         return NextResponse.json({ error: 'An error occurred' }, { status: 500 });
     }
@@ -93,7 +95,7 @@ export async function DELETE(req: NextRequest) {
 
         deleteUser(id);
         return NextResponse.json({ success: true });
-    } catch (e: any) {
+    } catch (e: unknown) {
         console.error('User operation error:', e);
         return NextResponse.json({ error: 'An error occurred' }, { status: 500 });
     }
@@ -106,7 +108,7 @@ export async function PUT(req: NextRequest) {
 
     try {
         const body = await req.json();
-        
+
         // Validate request body
         const validationResult = changePasswordSchema.safeParse(body);
         if (!validationResult.success) {
@@ -126,7 +128,7 @@ export async function PUT(req: NextRequest) {
         updateUserPassword(id, passHash);
 
         return NextResponse.json({ success: true });
-    } catch (e: any) {
+    } catch (e: unknown) {
         console.error('User operation error:', e);
         return NextResponse.json({ error: 'An error occurred' }, { status: 500 });
     }

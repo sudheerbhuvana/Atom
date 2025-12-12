@@ -11,15 +11,16 @@ const formatBytes = (bytes: number) => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
-const calculateCPUPercent = (stats: any) => {
+const calculateCPUPercent = (stats: unknown) => {
+    const s = stats as { cpu_stats?: { cpu_usage?: { total_usage?: number; percpu_usage?: number[] }; system_cpu_usage?: number; online_cpus?: number }; precpu_stats?: { cpu_usage?: { total_usage?: number }; system_cpu_usage?: number } };
     let cpuPercent = 0.0;
     // Check if stats are available
-    if (!stats.cpu_stats || !stats.precpu_stats) return 0;
+    if (!s.cpu_stats || !s.precpu_stats) return 0;
 
     // Calculate deltas
-    const cpuDelta = stats.cpu_stats.cpu_usage.total_usage - stats.precpu_stats.cpu_usage.total_usage;
-    const systemDelta = stats.cpu_stats.system_cpu_usage - stats.precpu_stats.system_cpu_usage;
-    const onlineCpus = stats.cpu_stats.online_cpus || stats.cpu_stats.cpu_usage.percpu_usage?.length || 1;
+    const cpuDelta = (s.cpu_stats.cpu_usage?.total_usage || 0) - (s.precpu_stats.cpu_usage?.total_usage || 0);
+    const systemDelta = (s.cpu_stats.system_cpu_usage || 0) - (s.precpu_stats.system_cpu_usage || 0);
+    const onlineCpus = s.cpu_stats.online_cpus || s.cpu_stats.cpu_usage?.percpu_usage?.length || 1;
 
     if (systemDelta > 0.0 && cpuDelta > 0.0) {
         cpuPercent = (cpuDelta / systemDelta) * onlineCpus * 100.0;
@@ -27,13 +28,14 @@ const calculateCPUPercent = (stats: any) => {
     return Math.round(cpuPercent * 10) / 10;
 };
 
-const calculateMemPercent = (stats: any) => {
-    if (!stats.memory_stats || !stats.memory_stats.limit) return 0;
+const calculateMemPercent = (stats: unknown) => {
+    const s = stats as { memory_stats?: { limit?: number; usage?: number; stats?: { inactive_file?: number } } };
+    if (!s.memory_stats || !s.memory_stats.limit) return 0;
 
     // Some docker versions use 'usage', others might differ, but standard is:
     // usage - inactive_file
-    const used = (stats.memory_stats.usage || 0) - (stats.memory_stats.stats?.inactive_file || 0);
-    const limit = stats.memory_stats.limit || 0;
+    const used = (s.memory_stats.usage || 0) - (s.memory_stats.stats?.inactive_file || 0);
+    const limit = s.memory_stats.limit || 0;
 
     if (limit === 0) return 0;
     return Math.round((used / limit) * 100);
@@ -51,16 +53,16 @@ export async function GET() {
             setTimeout(() => reject(new Error('Docker list timed out')), 5000)
         );
 
-        const containers = await Promise.race([listPromise, timeoutPromise]) as any[];
+        const containers = await Promise.race([listPromise, timeoutPromise]) as Docker.ContainerInfo[];
 
         // Parallel fetch stats for running containers with individual timeouts
         const containersWithStats = await Promise.all(containers.map(async (container) => {
             const portsList = new Set(
-                container.Ports?.filter((p: any) => p.PublicPort)
-                    .map((p: any) => `${p.PublicPort}:${p.PrivatePort}`)
+                container.Ports?.filter((p: { PublicPort?: number }) => p.PublicPort)
+                    .map((p: { PublicPort?: number; PrivatePort: number }) => `${p.PublicPort}:${p.PrivatePort}`)
             );
 
-            const simpleContainer: any = {
+            const simpleContainer: { id: string; name: string; image: string; state: string; status: string; ports: string; cpu?: number; memPercent?: number; memory?: string } = {
                 id: container.Id.substring(0, 12),
                 name: container.Names[0].replace('/', ''),
                 image: container.Image.length > 40 ? container.Image.substring(0, 20) + '...' : container.Image,
@@ -76,7 +78,7 @@ export async function GET() {
                     const statsPromise = docker.getContainer(container.Id).stats({ stream: false });
                     const statsTimeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Stats timeout')), 2000));
 
-                    const stats: any = await Promise.race([statsPromise, statsTimeout]);
+                    const stats = await Promise.race([statsPromise, statsTimeout]) as Docker.ContainerStats;
 
                     simpleContainer.cpu = calculateCPUPercent(stats);
 
@@ -85,7 +87,7 @@ export async function GET() {
                     simpleContainer.memPercent = calculateMemPercent(stats);
                     simpleContainer.memory = `${formatBytes(used)} / ${formatBytes(limit)}`;
 
-                } catch (e) {
+                } catch {
                     // Fail silently for stats, just show 0
                     // console.error(`Stats failed for ${simpleContainer.name}`, e);
                     simpleContainer.cpu = 0;
@@ -102,14 +104,15 @@ export async function GET() {
         }));
 
         return NextResponse.json({ containers: containersWithStats });
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
         console.error('Docker API Error:', error);
         const isWindows = process.platform === 'win32';
         const socketPath = isWindows ? '//./pipe/docker_engine' : '/var/run/docker.sock';
 
         return NextResponse.json({
             error: 'Failed to connect to Docker',
-            details: error.message || String(error),
+            details: errorMsg,
             hint: `Tried default socket: ${socketPath}. Ensure Docker is running.`
         }, { status: 500 });
     }

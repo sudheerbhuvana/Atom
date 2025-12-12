@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowLeft, RefreshCw, Box, Terminal, Play, Square, RotateCw } from 'lucide-react';
+import { ArrowLeft, Terminal, Play, Square, RotateCw } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { DockerContainer } from '@/types';
@@ -89,8 +89,9 @@ export default function DockerDashboard() {
 
             toast.success(data.message);
             fetchContainers(); // Immediate refresh
-        } catch (error: any) {
-            toast.error(error.message);
+        } catch (error: unknown) {
+            const errorMsg = error instanceof Error ? error.message : 'An error occurred';
+            toast.error(errorMsg);
         } finally {
             setProcessing(null);
             toast.dismiss(loadingToast);

@@ -30,10 +30,11 @@ export async function GET(request: Request) {
 
         const data = await res.json();
         return NextResponse.json(data);
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
         console.error(`Proxy error for ${targetUrl}:`, error);
         return NextResponse.json(
-            { error: 'Failed to fetch target URL', details: error.message },
+            { error: 'Failed to fetch target URL', details: errorMsg },
             { status: 502 }
         );
     }

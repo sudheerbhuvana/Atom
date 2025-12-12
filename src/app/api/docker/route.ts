@@ -48,52 +48,52 @@ export async function GET() {
                 // Inspect to get full details like startedAt
                 const inspect = await container.inspect();
 
-            // CPU Calculation
-            let cpuPercent = 0.0;
-            const cpuStats = stats.cpu_stats;
-            const precpuStats = stats.precpu_stats;
+                // CPU Calculation
+                let cpuPercent = 0.0;
+                const cpuStats = stats.cpu_stats;
+                const precpuStats = stats.precpu_stats;
 
-            if (cpuStats && precpuStats && cpuStats.cpu_usage && precpuStats.cpu_usage) {
-                const cpuDelta = cpuStats.cpu_usage.total_usage - precpuStats.cpu_usage.total_usage;
-                const systemDelta = cpuStats.system_cpu_usage - precpuStats.system_cpu_usage;
+                if (cpuStats && precpuStats && cpuStats.cpu_usage && precpuStats.cpu_usage) {
+                    const cpuDelta = cpuStats.cpu_usage.total_usage - precpuStats.cpu_usage.total_usage;
+                    const systemDelta = cpuStats.system_cpu_usage - precpuStats.system_cpu_usage;
 
-                if (systemDelta > 0 && cpuDelta > 0) {
-                    // Use online_cpus if available, otherwise percpu_usage length, fallback to 1
-                    const onlineCpus = cpuStats.online_cpus || (cpuStats.cpu_usage.percpu_usage ? cpuStats.cpu_usage.percpu_usage.length : 1);
-                    cpuPercent = (cpuDelta / systemDelta) * onlineCpus * 100.0;
+                    if (systemDelta > 0 && cpuDelta > 0) {
+                        // Use online_cpus if available, otherwise percpu_usage length, fallback to 1
+                        const onlineCpus = cpuStats.online_cpus || (cpuStats.cpu_usage.percpu_usage ? cpuStats.cpu_usage.percpu_usage.length : 1);
+                        cpuPercent = (cpuDelta / systemDelta) * onlineCpus * 100.0;
+                    }
                 }
-            }
 
-            // Memory Calculation
-            let memUsage = 0;
-            let memLimit = 0;
+                // Memory Calculation
+                let memUsage = 0;
+                let memLimit = 0;
 
-            if (stats.memory_stats) {
-                // v1 usually has 'usage', v2 might differ but dockerode usually normalizes or provides raw
-                // stats.memory_stats.usage checks
-                memUsage = stats.memory_stats.usage || 0;
-                memLimit = stats.memory_stats.limit || 0;
-            }
+                if (stats.memory_stats) {
+                    // v1 usually has 'usage', v2 might differ but dockerode usually normalizes or provides raw
+                    // stats.memory_stats.usage checks
+                    memUsage = stats.memory_stats.usage || 0;
+                    memLimit = stats.memory_stats.limit || 0;
+                }
 
-            const memPercent = memLimit > 0 ? (memUsage / memLimit) * 100 : 0;
+                const memPercent = memLimit > 0 ? (memUsage / memLimit) * 100 : 0;
 
-            // Ports formatting
-            const ports = containerInfo.Ports
-                .filter(p => p.PublicPort)
-                .map(p => `${p.PublicPort}->${p.PrivatePort}`)
-                .join(', ');
+                // Ports formatting
+                const ports = containerInfo.Ports
+                    .filter(p => p.PublicPort)
+                    .map(p => `${p.PublicPort}->${p.PrivatePort}`)
+                    .join(', ');
 
-            return {
-                id: containerInfo.Id.substring(0, 12),
-                name: containerInfo.Names[0].replace(/^\//, ''), // Remove leading slash
-                image: containerInfo.Image,
-                state: containerInfo.State, // running, exited
-                status: `Up ${formatUptime(inspect.State.StartedAt)}`,
-                cpu: parseFloat(cpuPercent.toFixed(2)),
-                memory: formatBytes(memUsage),
-                memPercent: parseFloat(memPercent.toFixed(2)),
-                ports: ports
-            };
+                return {
+                    id: containerInfo.Id.substring(0, 12),
+                    name: containerInfo.Names[0].replace(/^\//, ''), // Remove leading slash
+                    image: containerInfo.Image,
+                    state: containerInfo.State, // running, exited
+                    status: `Up ${formatUptime(inspect.State.StartedAt)}`,
+                    cpu: parseFloat(cpuPercent.toFixed(2)),
+                    memory: formatBytes(memUsage),
+                    memPercent: parseFloat(memPercent.toFixed(2)),
+                    ports: ports
+                };
             } catch (containerError) {
                 // Handle individual container errors gracefully
                 console.error(`Error fetching stats for container ${containerInfo.Id}:`, containerError);
@@ -118,10 +118,12 @@ export async function GET() {
 
         return NextResponse.json(results);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Docker API Error:', error);
+        const errorCode = (error as { code?: string }).code;
+        const errorAddress = (error as { address?: string }).address;
 
-        if (error.code === 'ENOENT' && error.address === '/var/run/docker.sock') {
+        if (errorCode === 'ENOENT' && errorAddress === '/var/run/docker.sock') {
             return NextResponse.json(
                 { error: 'Docker socket not found. Please mount /var/run/docker.sock in Coolify.' },
                 { status: 500 }

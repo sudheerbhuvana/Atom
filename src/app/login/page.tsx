@@ -77,7 +77,6 @@ export default function LoginPage() {
     return (
         <div className={styles.container}>
             <div className={styles.card}>
-                <div className={styles.logo}>⚛️</div>
                 <h1 className={styles.title}>Welcome Back</h1>
                 <p className={styles.subtitle}>Sign in to your Atom dashboard</p>
 

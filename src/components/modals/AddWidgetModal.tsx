@@ -28,16 +28,16 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
     const [type, setType] = useState<Widget['type']>(initialData?.type || 'generic');
     const [title, setTitle] = useState(initialData?.title || '');
     // Generic options
-    const [endpoint, setEndpoint] = useState(initialData?.options?.endpoint || '');
+    const [endpoint, setEndpoint] = useState((initialData?.options?.endpoint as string) || '');
     const [fields, setFields] = useState<FieldConfig[]>(
-        initialData?.options?.fields || [{ label: '', path: '' }]
+        (initialData?.options?.fields as FieldConfig[]) || [{ label: '', path: '' }]
     );
 
-    // Initialize raw JSON when entering mode
+    // Initialize raw JSON when entering mode - intentionally triggered by isJsonMode only
     useEffect(() => {
         if (isJsonMode) {
             const currentData = {
-                id: initialData?.id || 'temp-id', // Placeholder
+                id: initialData?.id || 'widget-' + Date.now(),
                 type,
                 title,
                 options: type === 'generic' ? { endpoint, fields: fields.filter(f => f.label && f.path) } : {}
@@ -45,6 +45,7 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
             setRawJson(JSON.stringify(currentData, null, 2));
             setJsonError('');
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isJsonMode]);
 
     const handleSwitchMode = () => {
@@ -59,8 +60,8 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
                     setFields(parsed.options.fields || [{ label: '', path: '' }]);
                 }
                 setIsJsonMode(false);
-            } catch (e) {
-                toast.error('Invalid JSON');
+            } catch {
+                // Silent fail
                 setJsonError('Invalid JSON format');
             }
         } else {
@@ -84,7 +85,7 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
         if (preset) {
             setTitle(preset.name);
             setEndpoint(preset.defaultOptions.endpoint);
-            // @ts-ignore
+            // @ts-expect-error Preset fields match FieldConfig structure
             setFields(preset.defaultOptions.fields);
             toast.success(`Applied ${preset.name} preset`);
         }
@@ -100,7 +101,7 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
 
     const handleFieldChange = (index: number, key: keyof FieldConfig, value: string) => {
         const newFields = [...fields];
-        // @ts-ignore
+        // @ts-expect-error Dynamic field assignment
         newFields[index][key] = value;
         setFields(newFields);
     };
@@ -117,8 +118,9 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
                     ...parsed,
                     id: initialData?.id || parsed.id || `widget-${Date.now()}`
                 };
-            } catch (e: any) {
-                toast.error(e.message || 'Invalid JSON');
+            } catch (e: unknown) {
+                const errorMsg = e instanceof Error ? e.message : 'Invalid JSON';
+                toast.error(errorMsg);
                 return;
             }
         } else {
@@ -167,11 +169,10 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
                         <h2>{initialData ? 'Edit' : 'Add'} Widget</h2>
                         <button
                             onClick={handleSwitchMode}
-                            className={styles.addBtn}
+                            className={styles.modeSwitchBtn}
                             title={isJsonMode ? "Switch to Form" : "Switch to JSON"}
-                            style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', display: 'flex', gap: '0.3rem', alignItems: 'center' }}
                         >
-                            <Code size={14} /> {isJsonMode ? 'Form' : 'Config'}
+                            <Code size={14} /> {isJsonMode ? 'Form Mode' : 'JSON Mode'}
                         </button>
                     </div>
                     <button onClick={onClose} className={styles.closeBtn}><X size={20} /></button>
@@ -184,10 +185,10 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
                             <textarea
                                 value={rawJson}
                                 onChange={e => setRawJson(e.target.value)}
-                                style={{ flex: 1, minHeight: '300px', fontFamily: 'monospace', fontSize: '0.85rem', lineHeight: '1.4' }}
+                                style={{ flex: 1, minHeight: '300px', fontFamily: 'monospace', fontSize: '0.85rem', lineHeight: '1.5' }}
                                 spellCheck={false}
                             />
-                            {jsonError && <span style={{ color: '#ff4444', fontSize: '0.85rem' }}>{jsonError}</span>}
+                            {jsonError && <span style={{ color: '#ef4444', fontSize: '0.85rem' }}>{jsonError}</span>}
                         </div>
                     ) : (
                         <>
@@ -195,7 +196,7 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
                                 <label>Widget Type</label>
                                 <select
                                     value={type}
-                                    onChange={(e) => setType(e.target.value as any)}
+                                    onChange={(e) => setType(e.target.value as Widget['type'])}
                                 >
                                     <option value="generic">Generic (JSON API)</option>
                                     <option value="system-monitor">System Monitor</option>
@@ -206,14 +207,15 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
                             </div>
 
                             {type === 'generic' && !initialData && (
-                                <div className={styles.field} style={{ marginBottom: '0.5rem' }}>
-                                    <label style={{ color: '#deb887' }}>Load Preset (Optional)</label>
+                                <div className={styles.field}>
+                                    <label>Load Preset (Optional)</label>
                                     <select onChange={(e) => handleApplyPreset(e.target.value)} defaultValue="">
-                                        <option value="" disabled>Select a preset to auto-fill...</option>
+                                        <option value="" disabled>Select a preset...</option>
                                         {WIDGET_PRESETS.map(p => (
                                             <option key={p.id} value={p.id}>{p.name}</option>
                                         ))}
                                     </select>
+                                    <span className={styles.hint}>Auto-fills settings for popular services</span>
                                 </div>
                             )}
 
@@ -235,20 +237,20 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
                                             value={endpoint}
                                             onChange={(e) => setEndpoint(e.target.value)}
                                         />
-                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                                            Must return JSON. Use full URL including API Key.
+                                        <span className={styles.hint}>
+                                            Must return JSON. Include full URL with protocol and keys.
                                         </span>
                                     </div>
 
                                     <div className={styles.field}>
                                         <label>Data Fields</label>
                                         <div className={styles.fieldList}>
-                                            <div className={styles.fieldHeader} style={{ display: 'flex', gap: '8px', marginBottom: '4px', fontSize: '0.8rem', opacity: 0.7 }}>
-                                                <span style={{ flex: 1 }}>Label</span>
-                                                <span style={{ flex: 1 }}>JSON Path</span>
-                                                <span style={{ width: '60px' }}>Suffix</span>
-                                                <span style={{ width: '70px' }}>Format</span>
-                                                <span style={{ width: '24px' }}></span>
+                                            <div className={styles.fieldHeader}>
+                                                <span>Label</span>
+                                                <span>JSON Path</span>
+                                                <span>Suffix</span>
+                                                <span>Format</span>
+                                                <span></span>
                                             </div>
                                             {fields.map((field, i) => (
                                                 <div key={i} className={styles.fieldItem}>
@@ -256,37 +258,33 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
                                                         placeholder="Label"
                                                         value={field.label}
                                                         onChange={e => handleFieldChange(i, 'label', e.target.value)}
-                                                        style={{ flex: 1 }}
                                                     />
                                                     <input
                                                         placeholder="total_records"
                                                         value={field.path}
                                                         onChange={e => handleFieldChange(i, 'path', e.target.value)}
-                                                        style={{ flex: 1 }}
                                                     />
                                                     <input
                                                         placeholder="%"
                                                         value={field.suffix || ''}
                                                         onChange={e => handleFieldChange(i, 'suffix', e.target.value)}
-                                                        style={{ width: '60px' }}
                                                     />
                                                     <select
                                                         value={field.format || ''}
                                                         onChange={e => handleFieldChange(i, 'format', e.target.value)}
-                                                        style={{ width: '70px', padding: '0 4px' }}
                                                     >
                                                         <option value="">None</option>
                                                         <option value="number">Num</option>
                                                         <option value="bytes">Bytes</option>
                                                         <option value="percent">%</option>
                                                     </select>
-                                                    <button onClick={() => handleRemoveField(i)} className={styles.removeBtn}>
-                                                        <Trash2 size={14} />
+                                                    <button onClick={() => handleRemoveField(i)} className={`${styles.iconBtn} ${styles.removeBtn}`}>
+                                                        <Trash2 size={16} />
                                                     </button>
                                                 </div>
                                             ))}
                                             <button onClick={handleAddField} className={styles.addBtn}>
-                                                <Plus size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> Add Field
+                                                <Plus size={16} /> Add Field
                                             </button>
                                         </div>
                                     </div>

@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
     try {
         const body = await request.json();
-        
+
         // Validate request body
         const validationResult = batchRequestSchema.safeParse(body);
         if (!validationResult.success) {
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
             try {
                 const result = await checkServiceStatus(url);
                 return { url, result };
-            } catch (error) {
+            } catch {
                 return {
                     url,
                     result: {

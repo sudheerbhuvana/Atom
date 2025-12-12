@@ -4,16 +4,17 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease-out;
 }
 
 .modal {
-    background: #09090b;
+    background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     width: 90%;
@@ -23,6 +24,7 @@
     flex-direction: column;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
     overflow: hidden;
+    animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .header {
@@ -31,13 +33,13 @@
     justify-content: space-between;
     align-items: flex-start;
     border-bottom: 1px solid var(--border-color);
-    background: #09090b;
+    background: var(--bg-card);
 }
 
 .headerContent h2 {
     font-size: 1.25rem;
     font-weight: 600;
-    color: #fff;
+    color: var(--text-primary);
     margin-bottom: 0.25rem;
 }
 
@@ -54,40 +56,44 @@
     padding: 0.5rem;
     border-radius: var(--radius-sm);
     transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .closeBtn:hover {
-    color: #fff;
-    background: #27272a;
+    color: var(--text-primary);
+    background: var(--bg-hover);
 }
 
 .toolbar {
     padding: 1rem 1.5rem;
     display: flex;
     gap: 1rem;
-    background: #18181b;
+    background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
 }
 
 .searchBar {
     flex: 1;
-    background: #27272a;
-    border: 1px solid #3f3f46;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
     padding: 0.5rem 1rem;
     border-radius: var(--radius-sm);
-    color: #fff;
+    color: var(--text-primary);
     font-size: 0.9rem;
     outline: none;
+    transition: border-color 0.2s;
 }
 
 .searchBar:focus {
-    border-color: #deb887;
+    border-color: var(--accent-color);
 }
 
 .deleteBtn {
-    background: #450a0a;
-    color: #fca5a5;
-    border: 1px solid #7f1d1d;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid #dc2626;
     padding: 0.5rem 1rem;
     border-radius: var(--radius-sm);
     cursor: pointer;
@@ -97,12 +103,14 @@
 }
 
 .deleteBtn:hover {
-    background: #7f1d1d;
+    background: #dc2626;
+    color: #fff;
 }
 
 .tableContainer {
     flex: 1;
     overflow-y: auto;
+    background: var(--bg-secondary);
 }
 
 .table {
@@ -117,15 +125,25 @@
     color: var(--text-secondary);
     font-weight: 500;
     border-bottom: 1px solid var(--border-color);
-    background: #09090b;
+    background: var(--bg-secondary);
     position: sticky;
     top: 0;
+    z-index: 10;
+}
+
+.table tbody tr {
+    background: var(--bg-card);
+    transition: background 0.1s;
+}
+
+.table tbody tr:hover {
+    background: var(--bg-hover);
 }
 
 .table td {
     padding: 1rem;
-    border-bottom: 1px solid #27272a;
-    color: #e4e4e7;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
     vertical-align: middle;
 }
 
@@ -134,7 +152,8 @@
 }
 
 .selectedRow {
-    background: rgba(222, 184, 135, 0.05);
+    background: var(--bg-hover) !important;
+    border-left: 2px solid var(--accent-color);
 }
 
 .urlCell {
@@ -143,16 +162,18 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-size: 0.85rem;
+    font-family: monospace;
 }
 
 .typeBadge {
     display: inline-block;
     padding: 0.25rem 0.5rem;
-    background: #27272a;
+    background: var(--bg-secondary);
     border-radius: 4px;
     font-size: 0.75rem;
     color: var(--text-secondary);
-    border: 1px solid #3f3f46;
+    border: 1px solid var(--border-color);
 }
 
 .actionBtn {
@@ -169,13 +190,13 @@
 }
 
 .actionBtn:hover {
-    background: #27272a;
-    color: #deb887;
+    background: var(--bg-hover);
+    color: var(--accent-color);
 }
 
 .footer {
     padding: 1rem 1.5rem;
-    background: #09090b;
+    background: var(--bg-secondary);
     border-top: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
@@ -190,13 +211,14 @@
 }
 
 .pageBtn {
-    background: transparent;
-    border: 1px solid #27272a;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
     color: var(--text-secondary);
     padding: 0.25rem 0.75rem;
     border-radius: 4px;
     cursor: pointer;
     font-size: 0.8rem;
+    transition: all 0.2s;
 }
 
 .pageBtn:disabled {
@@ -205,6 +227,28 @@
 }
 
 .pageBtn:not(:disabled):hover {
-    border-color: var(--text-muted);
-    color: #fff;
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleUp {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }

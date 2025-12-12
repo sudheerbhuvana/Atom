@@ -5,7 +5,8 @@ import type { NextRequest } from 'next/server';
 // Note: /api/config GET is public for initial setup, but POST requires auth (checked in route)
 const publicRoutes = ['/login', '/onboard', '/api/auth', '/api/config'];
 
-export function middleware(request: NextRequest) {
+// Named export 'proxy' for Next.js 16
+export function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     // Allow public routes

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 
 type ServiceStatus = {
     state: 'loading' | 'up' | 'down' | 'slow';
@@ -59,7 +59,7 @@ export function StatusProvider({ children }: { children: ReactNode }) {
                     lastUpdated: Date.now()
                 } as ServiceStatus;
             }
-        } catch (e) {
+        } catch {
             return { state: 'down', code: 0, latency: 0, lastUpdated: Date.now() } as ServiceStatus;
         }
     };
@@ -85,7 +85,8 @@ export function StatusProvider({ children }: { children: ReactNode }) {
         setStatuses(prev => ({ ...prev, [key]: data }));
     }, []); // No dependencies needed now
 
-    const checkMany = useCallback(async (services: { id: string, url: string, ping?: string }[], concurrency = 5, force = false) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const checkMany = useCallback(async (services: { id: string, url: string, ping?: string }[], _concurrency = 5, force = false) => {
         // Filter out items that are already fresh
         const servicesToFetch = services.filter(s => {
             if (force) return true;
@@ -137,14 +138,15 @@ export function StatusProvider({ children }: { children: ReactNode }) {
                 if (data.results) {
                     setStatuses(prev => {
                         const next = { ...prev };
-                        Object.entries(data.results).forEach(([url, result]: [string, any]) => {
+                        Object.entries(data.results).forEach(([url, result]: [string, unknown]) => {
+                            const res = result as { up: boolean; status: number; latency: number };
                             // We need to map back to IDs. 
                             httpServices.filter(s => s.url === url).forEach(s => {
                                 const key = s.id || s.url;
                                 next[key] = {
-                                    state: result.up ? (result.latency > 200 ? 'slow' : 'up') : 'down',
-                                    code: result.status,
-                                    latency: result.latency,
+                                    state: res.up ? (res.latency > 200 ? 'slow' : 'up') : 'down',
+                                    code: res.status,
+                                    latency: res.latency,
                                     lastUpdated: Date.now()
                                 };
                             });
@@ -168,12 +170,12 @@ export function StatusProvider({ children }: { children: ReactNode }) {
 
     }, []); // No dependencies needed now
 
-    const refreshAll = useCallback(async (services: any[]) => {
+    const refreshAll = useCallback(async (services: { id: string, url: string, ping?: string }[]) => {
         return checkMany(services, 5, true);
     }, [checkMany]);
 
     return (
-        <StatusContext.Provider value={{ statuses, checkStatus: checkStatus as any, checkMany: checkMany as any, refreshAll: refreshAll as any }}>
+        <StatusContext.Provider value={{ statuses, checkStatus, checkMany, refreshAll }}>
             {children}
         </StatusContext.Provider>
     );

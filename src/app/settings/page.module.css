@@ -235,9 +235,9 @@
 }
 
 .configModal {
-    background: #1a1816;
+    background: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-top: 3px solid var(--border-accent);
+    border-top: 3px solid var(--accent-color);
     border-radius: var(--radius-md);
     width: 90%;
     max-width: 800px;
@@ -275,10 +275,10 @@
     min-height: 400px;
     padding: 1rem;
     margin: 1rem;
-    background: #0d0b09;
+    background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
-    color: #e0d8c8;
+    color: var(--text-primary);
     font-family: 'JetBrains Mono', 'Fira Code', monospace;
     font-size: 0.8rem;
     line-height: 1.5;

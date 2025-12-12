@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Cpu, MemoryStick, HardDrive } from 'lucide-react';
+import { Cpu, MemoryStick } from 'lucide-react';
 import { SystemStats } from '@/types';
 import styles from './SystemStats.module.css';
 

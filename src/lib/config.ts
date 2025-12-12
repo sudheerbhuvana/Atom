@@ -1,10 +1,7 @@
+
 import { AppConfig } from '@/types';
 import { getConfig as getDbConfig, saveConfig as saveDbConfig, hasConfig as hasDbConfig } from './db';
 
-import fs from 'fs';
-import path from 'path';
-
-// Default config for new installations
 const DEFAULT_CONFIG: AppConfig = {
     title: 'Atom',
     theme: { primaryColor: '#d4a574', backgroundColor: '#111111' },
@@ -13,11 +10,14 @@ const DEFAULT_CONFIG: AppConfig = {
     layout: { columns: 4, gap: 18, showWidgets: true, fullSizeButtons: true, style: 'grid', containerWidth: 'centered' },
     searchEngine: 'Google',
     user: { name: 'User' },
-    widgets: []
+    widgets: [
+        { id: 'default-sys', type: 'system-monitor', title: 'System Monitor' },
+        { id: 'default-docker', type: 'docker', title: 'Docker Stats' }
+    ]
 };
 
 // Legacy config path for migration
-const LEGACY_CONFIG_PATH = path.join(process.cwd(), 'src/data/config.json');
+
 
 export async function getConfig(): Promise<AppConfig> {
     try {

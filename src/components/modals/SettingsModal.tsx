@@ -50,7 +50,7 @@ export default function SettingsModal({ isOpen, onClose, config, onUpdate }: Set
     };
 
     // Handlers for General Settings
-    const handleGeneralChange = (field: string, value: any) => {
+    const handleGeneralChange = (field: string, value: string) => {
         if (field === 'columns') {
             setLocalConfig(prev => ({
                 ...prev,

@@ -6,6 +6,7 @@
  * Or: docker exec -it atom node scripts/reset-password.js <username> <new-password>
  */
 
+/* eslint-disable @typescript-eslint/no-require-imports */
 const Database = require('better-sqlite3');
 const bcrypt = require('bcryptjs');
 const path = require('path');

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Save, Upload, Download, Trash2, Edit3, Plus, Sun, Moon, Code, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { AppConfig, Service, Link as AppLink, Widget } from '@/types';
+import { Service, Link as AppLink, Widget } from '@/types';
 import { useTheme } from '@/context/ThemeContext';
 import AddServiceModal from '@/components/modals/AddServiceModal';
 import EditServiceModal from '@/components/modals/EditServiceModal';
@@ -31,7 +31,7 @@ export default function SettingsPage() {
         }
     }, [config]);
 
-    const updateLayout = (key: string, value: any) => {
+    const updateLayout = (key: string, value: string | number | boolean) => {
         if (!config) return;
         updateConfig({
             ...config,
@@ -155,7 +155,7 @@ export default function SettingsPage() {
                     updateConfig(json);
                     toast.success('Configuration imported successfully');
                 }
-            } catch (err) { toast.error('Invalid JSON configuration file'); }
+            } catch { toast.error('Invalid JSON configuration file'); }
         };
         reader.readAsText(file);
     };
@@ -482,7 +482,7 @@ export default function SettingsPage() {
                                         updateConfig(parsed);
                                         setActiveModal(null);
                                         alert('Config saved!');
-                                    } catch (e) {
+                                    } catch {
                                         alert('Invalid JSON! Please fix errors.');
                                     }
                                 }}

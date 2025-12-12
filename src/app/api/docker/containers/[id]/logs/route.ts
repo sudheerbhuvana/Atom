@@ -66,13 +66,13 @@ export async function GET(
                     controller.close();
                 });
 
-                logsStream.on('error', (err: any) => {
+                logsStream.on('error', (err: unknown) => {
                     controller.error(err);
                 });
             },
             cancel() {
-                if (logsStream && typeof (logsStream as any).destroy === 'function') {
-                    (logsStream as any).destroy();
+                if (logsStream && typeof (logsStream as unknown as { destroy?: () => void }).destroy === 'function') {
+                    (logsStream as unknown as { destroy: () => void }).destroy();
                 }
             }
         });
@@ -84,10 +84,11 @@ export async function GET(
                 'X-Content-Type-Options': 'nosniff',
             },
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
         console.error('Docker Log Error:', error);
         return NextResponse.json(
-            { error: 'Failed to fetch logs', details: error.message },
+            { error: 'Failed to fetch logs', details: errorMsg },
             { status: 500 }
         );
     }

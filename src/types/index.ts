@@ -54,7 +54,7 @@ export interface Widget {
     id: string;
     type: 'system-monitor' | 'weather' | 'clock' | 'generic' | 'docker'; // Add more types later
     title?: string;
-    options?: Record<string, any>;
+    options?: Record<string, unknown>;
 }
 
 export interface SystemStats {

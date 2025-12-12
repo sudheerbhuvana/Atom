@@ -18,11 +18,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         // Get saved theme from localStorage
         const savedTheme = localStorage.getItem('atom-theme') as Theme;
-        if (savedTheme) {
+        if (savedTheme && savedTheme !== theme) {
             setTheme(savedTheme);
             document.documentElement.setAttribute('data-theme', savedTheme);
+        } else if (!savedTheme) {
+            document.documentElement.setAttribute('data-theme', 'dark');
         }
         setMounted(true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const toggleTheme = () => {

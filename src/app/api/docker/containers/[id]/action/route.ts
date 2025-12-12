@@ -35,10 +35,11 @@ export async function POST(
         }
 
         return NextResponse.json({ success: true, message });
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
         console.error(`Docker Action Error (${action}):`, error);
         return NextResponse.json(
-            { error: `Failed to ${action} container`, details: error.message },
+            { error: `Failed to ${action} container`, details: errorMsg },
             { status: 500 }
         );
     }

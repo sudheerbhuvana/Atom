@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, ArrowUpDown, Trash2, Edit3, Settings } from 'lucide-react';
+import { X, ArrowUpDown, Edit3 } from 'lucide-react';
 import { Widget } from '@/types';
 import styles from './EditWidgetModal.module.css';
 
@@ -94,7 +94,7 @@ export default function EditWidgetModal({ widgets, onClose, onDelete, onEdit }: 
                                     <td>{w.title}</td>
                                     <td><span className={styles.typeBadge}>{w.type}</span></td>
                                     <td className={styles.urlCell}>
-                                        {w.type === 'generic' ? (w.options?.endpoint || '-') : JSON.stringify(w.options || {})}
+                                        {w.type === 'generic' ? ((w.options as { endpoint?: string })?.endpoint || '-') : JSON.stringify(w.options || {})}
                                     </td>
                                     <td>
                                         <button

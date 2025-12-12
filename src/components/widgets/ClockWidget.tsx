@@ -23,12 +23,6 @@ export default function ClockWidget({ weatherLocation, onShowShortcuts, onRefres
         return () => clearInterval(timer);
     }, []);
 
-    useEffect(() => {
-        if (weatherLocation) {
-            fetchWeather(weatherLocation);
-        }
-    }, [weatherLocation]);
-
     const fetchWeather = async (city: string) => {
         try {
             // 1. Geocode
@@ -53,6 +47,14 @@ export default function ClockWidget({ weatherLocation, onShowShortcuts, onRefres
             console.error('Weather fetch failed', e);
         }
     };
+
+    useEffect(() => {
+        if (weatherLocation) {
+            void fetchWeather(weatherLocation);
+        }
+    }, [weatherLocation]);
+
+
 
     const handleLogout = async () => {
         try {

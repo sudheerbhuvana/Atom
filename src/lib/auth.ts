@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 import { createSession, getSessionWithUser, deleteSession, getUserByUsername, createUser, getUserCount, updateUserPassword } from './db';
+import { getConfig, saveConfig } from './config';
 
 const SALT_ROUNDS = 10;
 const SESSION_COOKIE = 'atom_session';
@@ -72,7 +73,7 @@ export async function getCurrentUser() {
 export async function register(username: string, password: string): Promise<{ success: boolean; error?: string }> {
     // Hash password first (before DB check to prevent timing attacks)
     const hash = await hashPassword(password);
-    
+
     try {
         // createUser will throw if username exists (prevents race condition)
         const user = createUser(username, hash);
@@ -90,10 +91,26 @@ export async function register(username: string, password: string): Promise<{ su
             path: '/',
         });
 
+        // Sync config name with username
+        try {
+            const config = await getConfig();
+            if (config) {
+                config.user = { ...config.user, name: username };
+                await saveConfig(config);
+            }
+        } catch (err) {
+            console.error('Failed to sync config username:', err);
+            // Don't fail registration if config update fails
+        }
+
         return { success: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
         // Handle unique constraint violation (username already exists)
-        if (error.message === 'Username already exists' || error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+        const isUniqueConstraint = error instanceof Error &&
+            (error.message === 'Username already exists' ||
+                ('code' in error && (error as { code: string }).code === 'SQLITE_CONSTRAINT_UNIQUE'));
+
+        if (isUniqueConstraint) {
             return { success: false, error: 'Username already exists' };
         }
         throw error; // Re-throw unexpected errors

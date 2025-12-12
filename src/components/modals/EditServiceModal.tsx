@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, ArrowUpDown, Trash2, Edit3 } from 'lucide-react';
+import { X, ArrowUpDown, Edit3 } from 'lucide-react';
 import { Service } from '@/types';
 import * as simpleIcons from 'simple-icons';
 import styles from './EditServiceModal.module.css';
@@ -95,7 +95,7 @@ export default function EditServiceModal({ services, onClose, onDelete, onEdit, 
                                 let IconPath = null;
                                 if (s.icon) {
                                     const slug = 'si' + s.icon.charAt(0).toUpperCase() + s.icon.slice(1);
-                                    // @ts-ignore
+                                    // @ts-expect-error SimpleIcons indexing by string key
                                     const iconData = simpleIcons[slug];
                                     if (iconData) IconPath = iconData.path;
                                 }

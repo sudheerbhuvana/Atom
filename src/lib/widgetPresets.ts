@@ -6,7 +6,7 @@ export interface WidgetPreset {
     icon: string;
     defaultOptions: {
         endpoint: string;
-        fields: { label: string; path: string; suffix?: string }[];
+        fields: { label: string; path: string; suffix?: string; format?: string }[];
     }
 }
 
@@ -79,8 +79,8 @@ export const WIDGET_PRESETS: WidgetPreset[] = [
             endpoint: 'http://localhost:61208/api/3/mem',
             fields: [
                 { label: 'Used', path: 'percent', suffix: '%' },
-                { label: 'Free', path: 'free', format: 'bytes' } as any, // Using 'bytes' format if supported by GenericWidget, strictly typed here as string path
-                { label: 'Total', path: 'total', format: 'bytes' } as any
+                { label: 'Free', path: 'free', format: 'bytes' },
+                { label: 'Total', path: 'total', format: 'bytes' }
             ]
         }
     },

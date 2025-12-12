@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Terminal as TerminalIcon, Download, RefreshCw } from 'lucide-react';
+import { X, Terminal as TerminalIcon } from 'lucide-react';
 import styles from './ContainerLogsModal.module.css';
 
 interface ContainerLogsModalProps {
@@ -17,7 +17,6 @@ export default function ContainerLogsModal({ containerId, containerName, onClose
     const abortControllerRef = useRef<AbortController | null>(null);
 
     // Helper to strip ANSI codes (more comprehensive regex)
-    // eslint-disable-next-line no-control-regex
     const stripAnsi = (str: string) => str.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
 
     useEffect(() => {
@@ -43,8 +42,8 @@ export default function ContainerLogsModal({ containerId, containerName, onClose
                     const chunk = decoder.decode(value, { stream: true });
                     setLogs(prev => prev + stripAnsi(chunk));
                 }
-            } catch (error: any) {
-                if (error.name !== 'AbortError') {
+            } catch (error: unknown) {
+                if (error instanceof Error && error.name !== 'AbortError') {
                     console.error('Log stream error:', error);
                     setLogs(prev => prev + '\n\n[Connection Error: ' + error.message + ']');
                 }

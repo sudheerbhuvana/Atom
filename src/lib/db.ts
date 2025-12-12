@@ -17,16 +17,14 @@ const globalWithDb = global as typeof globalThis & {
     _preparedStmts?: Map<string, Database.Statement>;
 };
 
-let db: Database.Database;
-let preparedStmts: Map<string, Database.Statement>;
-
 if (!globalWithDb._db) {
     globalWithDb._db = new Database(DB_PATH);
     globalWithDb._preparedStmts = new Map();
 }
-db = globalWithDb._db;
-preparedStmts = globalWithDb._preparedStmts || new Map();
-// Ensure it's set back to global in case it was missing
+
+const db = globalWithDb._db;
+let preparedStmts = globalWithDb._preparedStmts || new Map();
+
 if (!globalWithDb._preparedStmts) {
     globalWithDb._preparedStmts = preparedStmts;
 }
@@ -84,12 +82,12 @@ export function createUser(username: string, passwordHash: string): User {
     // Use INSERT OR IGNORE to prevent race conditions
     const stmt = getStmt('INSERT INTO users (username, password_hash) VALUES (?, ?)');
     const result = stmt.run(username, passwordHash);
-    
+
     // Check if insert was successful (SQLite returns changes > 0)
     if (result.changes === 0) {
         throw new Error('Username already exists');
     }
-    
+
     return getUserById(result.lastInsertRowid as number)!;
 }
 

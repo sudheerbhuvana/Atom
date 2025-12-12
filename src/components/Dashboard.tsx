@@ -1,10 +1,8 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import Link from 'next/link';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, Grid3X3, Grid2X2, List as ListIcon, ChevronRight } from 'lucide-react';
-import { AppConfig } from '@/types';
 import ServiceCard from './ui/ServiceCard';
 import SystemStatsWidget from './widgets/SystemStats';
 import DockerWidget from './widgets/DockerWidget';
@@ -17,7 +15,7 @@ import styles from './Dashboard.module.css';
 import { useConfig } from '@/context/ConfigContext';
 
 
-export default function Dashboard() {
+export default function Dashboard({ user }: { user?: { username: string } }) {
     const { config, updateConfig, loading } = useConfig();
     const [search, setSearch] = useState('');
     const [layout, setLayout] = useState<'list' | 'grid4' | 'grid6'>('grid6');
@@ -34,17 +32,30 @@ export default function Dashboard() {
         checkMany(config.services);
     }, [config?.services, checkMany]);
 
+    // Handler functions must be declared before effects that use them
+    const handleLayoutChange = useCallback((newLayout: 'list' | 'grid4' | 'grid6') => {
+        if (!config) return;
+
+        setLayout(newLayout); // Optimistic UI
+
+        const newConfig = { ...config };
+        if (!newConfig.layout) newConfig.layout = { columns: 6, gap: 16 };
+
+        if (newLayout === 'list') {
+            newConfig.layout.style = 'list';
+        } else {
+            newConfig.layout.style = 'grid';
+            newConfig.layout.columns = newLayout === 'grid4' ? 4 : 6;
+        }
+
+        updateConfig(newConfig);
+    }, [config, updateConfig]);
+
     // Keyboard shortcuts
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            // Ignore if user is typing in an input
-            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-                // Escape to blur search
-                if (e.key === 'Escape') {
-                    (e.target as HTMLElement).blur();
-                }
-                return;
-            }
+            // Ignore if typing in input
+            if (e.target instanceof HTMLInputElement) return;
 
             switch (e.key) {
                 case '/':
@@ -75,7 +86,7 @@ export default function Dashboard() {
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [router, config]); // config dep is fine, context updates it
+    }, [router, config, handleLayoutChange]);
 
 
     // Set initial layout from config
@@ -91,23 +102,7 @@ export default function Dashboard() {
         }
     }, [config]);
 
-    const handleLayoutChange = (newLayout: 'list' | 'grid4' | 'grid6') => {
-        if (!config) return;
 
-        setLayout(newLayout); // Optimistic UI
-
-        const newConfig = { ...config };
-        if (!newConfig.layout) newConfig.layout = { columns: 6, gap: 16 };
-
-        if (newLayout === 'list') {
-            newConfig.layout.style = 'list';
-        } else {
-            newConfig.layout.style = 'grid';
-            newConfig.layout.columns = newLayout === 'grid4' ? 4 : 6;
-        }
-
-        updateConfig(newConfig);
-    };
 
     const handleRefresh = async () => {
         if (!config) return;
@@ -162,7 +157,7 @@ export default function Dashboard() {
                         {config.title || 'Atom'}
                     </h1>
                     <p className={styles.subtitle}>
-                        {getGreeting()}, {config.user?.name || 'User'}!
+                        {getGreeting()}, {user?.username || config.user?.name || 'User'}!
                     </p>
                 </div>
                 <ClockWidget
@@ -200,9 +195,9 @@ export default function Dashboard() {
                                 {widget.type === 'generic' && (
                                     <GenericWidget
                                         title={widget.title || 'Widget'}
-                                        endpoint={widget.options?.endpoint}
-                                        fields={widget.options?.fields || []}
-                                        refreshInterval={widget.options?.refreshInterval}
+                                        endpoint={(widget.options as { endpoint?: string })?.endpoint || ''}
+                                        fields={(widget.options as { fields?: { label: string; path: string; suffix?: string }[] })?.fields || []}
+                                        refreshInterval={(widget.options as { refreshInterval?: number })?.refreshInterval}
                                     />
                                 )}
                                 {widget.type === 'docker' && <DockerWidget />}
@@ -288,7 +283,7 @@ export default function Dashboard() {
                     {/* Empty Search State */}
                     {!hasResults && search.trim() !== '' && (
                         <div className={styles.emptyState}>
-                            <p>No results found for "{search}"</p>
+                            <p>No results found for &ldquo;{search}&rdquo;</p>
                             <a
                                 href={getSearchUrl(search)}
                                 target="_blank"
