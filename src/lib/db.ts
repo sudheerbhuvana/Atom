@@ -41,10 +41,27 @@ function getStmt(sql: string): Database.Statement {
     return preparedStmts.get(sql)!;
 }
 
-// Initialize tables
 // Initialize tables from schema file
 try {
-    const schemaPath = path.join(process.cwd(), 'src', 'lib', 'schema.sql');
+    // Try multiple potential locations for schema file (dev vs standalone builds)
+    const possiblePaths = [
+        path.join(process.cwd(), 'src', 'lib', 'schema.sql'),  // Dev mode
+        path.join(process.cwd(), 'schema.sql'),                 // Standalone root
+        path.join(__dirname, 'schema.sql'),                     // Same directory as db.ts
+    ];
+
+    let schemaPath: string | null = null;
+    for (const testPath of possiblePaths) {
+        if (fs.existsSync(testPath)) {
+            schemaPath = testPath;
+            break;
+        }
+    }
+
+    if (!schemaPath) {
+        throw new Error('Could not find schema.sql file in any expected location');
+    }
+
     const schema = fs.readFileSync(schemaPath, 'utf8');
     db.exec(schema);
 } catch (error) {

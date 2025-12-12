@@ -32,8 +32,10 @@ export async function login(username: string, password: string): Promise<{ succe
     const session = createSession(user.id);
 
     // Set cookie
+    // Only use secure cookies if explicitly enabled via COOKIE_SECURE env var
+    // This allows HTTP access in Docker while supporting HTTPS when configured
     const cookieStore = await cookies();
-    const isSecure = process.env.NODE_ENV === 'production' || process.env.COOKIE_SECURE === 'true';
+    const isSecure = process.env.COOKIE_SECURE === 'true';
     cookieStore.set(SESSION_COOKIE, session.id, {
         httpOnly: true,
         secure: isSecure,
@@ -82,7 +84,7 @@ export async function register(username: string, password: string): Promise<{ su
         const session = createSession(user.id);
 
         const cookieStore = await cookies();
-        const isSecure = process.env.NODE_ENV === 'production' || process.env.COOKIE_SECURE === 'true';
+        const isSecure = process.env.COOKIE_SECURE === 'true';
         cookieStore.set(SESSION_COOKIE, session.id, {
             httpOnly: true,
             secure: isSecure,
