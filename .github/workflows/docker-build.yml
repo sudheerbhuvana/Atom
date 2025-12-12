@@ -18,25 +18,26 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2   # needed for comparing commits
 
-      # 🔍 Check which files changed — skip build if only docs
       - name: Detect file changes
         id: changes
         uses: tj-actions/changed-files@v45
-
-      - name: Stop if only docs or markdown changed
-        if: steps.changes.outputs.only_changed == 'true'
-        run: |
-          echo "Only documentation or non-code files changed. Skipping Docker build."
-          exit 0
-        env:
-          FILES_PATTERN: |
+        with:
+          files_ignore: |
             **/*.md
             docs/**
             LICENSE
             .github/**
             .vscode/**
-          ONLY_CHANGED: true
+          since_last_remote_commit: true
+
+      - name: Skip Docker build if only docs or ignored files changed
+        if: steps.changes.outputs.only_changed == 'true'
+        run: |
+          echo "✅ Only documentation or ignored files changed. Skipping Docker build."
+          exit 0
 
       - name: Set up QEMU (for arm64 emulation)
         uses: docker/setup-qemu-action@v3
