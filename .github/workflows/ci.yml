@@ -1,20 +1,23 @@
-  name: CI
+name: CI
 
-  on:
-    push:
-      branches: [ main, develop ]
-    pull_request:
-      branches: [ main, develop ]
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
 
-  jobs:
-    test:
-      runs-on: ubuntu-latest
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
-      strategy:
-        matrix:
-          node-version: [22.x]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [22.x]
 
-      steps:
+    steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -23,6 +26,14 @@
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
+
+      - name: Cache build & node_modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            .next/cache
+          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
         run: npm ci
@@ -42,17 +53,18 @@
           files: ./coverage/lcov.info
           fail_ci_if_error: false
 
-    build:
-      runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
+    needs: test
 
-      steps:
+    steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: 20.x
           cache: 'npm'
 
       - name: Install dependencies
@@ -62,4 +74,3 @@
         run: npm run build
         env:
           NODE_ENV: production
-
