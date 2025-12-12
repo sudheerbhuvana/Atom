@@ -1,0 +1,7 @@
+.main {
+  min-height: 100vh;
+  position: relative;
+  background-color: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+}

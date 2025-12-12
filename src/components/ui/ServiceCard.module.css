@@ -1,0 +1,140 @@
+.card {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: var(--bg-card);
+    padding: 0.7rem 0.9rem;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: background-color 0.2s;
+    border: 1px solid var(--border-color);
+    min-width: 0;
+    overflow: hidden;
+    width: 100%;
+}
+
+.card:hover {
+    background: var(--bg-hover);
+}
+
+.iconContainer {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.svgIcon {
+    width: 18px;
+    height: 18px;
+    fill: var(--text-primary);
+}
+
+.iconContainer svg {
+    color: var(--text-primary);
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    overflow: hidden;
+    min-width: 0;
+    flex: 1;
+}
+
+.name {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.url {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+}
+
+/* Compact mode - icon only */
+.card.compact {
+    padding: 0.6rem;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+}
+
+.card.compact .iconContainer {
+    width: 22px;
+    height: 22px;
+}
+
+.card.compact .svgIcon {
+    width: 22px;
+    height: 22px;
+}
+
+/* Status Indicator */
+.statusDot {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 2px solid var(--bg-card);
+}
+
+.statusDot.up {
+    background-color: #10b981;
+    /* Green */
+}
+
+.statusDot.slow {
+    background-color: #f59e0b;
+    /* Yellow */
+}
+
+.statusDot.down {
+    background-color: #ef4444;
+    /* Red */
+    width: 10px;
+    height: 10px;
+}
+
+.statusDot.loading {
+    background-color: var(--text-muted);
+    opacity: 0.5;
+}
+
+.errorCode {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+.card.compact .statusDot {
+    bottom: 0;
+    right: 0;
+}
+
+.nameRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.statusLoader {
+    position: absolute;
+    bottom: -3px;
+    right: -3px;
+}

@@ -1,0 +1,22 @@
+# docker-compose.yml
+version: "3.9"
+
+services:
+  atom:
+    image: sudheerbhuvana25/atom-homepage:latest
+    container_name: atom
+    ports:
+      - "${PORT:-3000}:3000"
+    volumes:
+      - atom_data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATA_DIR: /app/data
+
+
+volumes:
+  atom_data:
+    driver: local

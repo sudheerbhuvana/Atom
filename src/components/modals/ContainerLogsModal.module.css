@@ -1,0 +1,116 @@
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 1rem;
+}
+
+.modal {
+    background: #0d1117;
+    /* GitHub Dark Dimmed / Terminal bg */
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    width: 95%;
+    max-width: 1200px;
+    height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: #161b22;
+    border-bottom: 1px solid #30363d;
+    color: #c9d1d9;
+}
+
+.title {
+    font-family: monospace;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.statusIndicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #238636;
+    /* Green */
+    box-shadow: 0 0 5px #238636;
+}
+
+.closeBtn {
+    background: none;
+    border: none;
+    color: #8b949e;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.closeBtn:hover {
+    color: #c9d1d9;
+    background: #21262d;
+}
+
+.terminal {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: #c9d1d9;
+    white-space: pre-wrap;
+    word-break: break-all;
+    scroll-behavior: smooth;
+}
+
+.logLine {
+    display: block;
+}
+
+.controls {
+    padding: 0.5rem 1rem;
+    border-top: 1px solid #30363d;
+    background: #161b22;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    color: #8b949e;
+}
+
+.autoScrollBtn {
+    background: none;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    padding: 2px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+}
+
+.autoScrollBtn.active {
+    background: #1f6feb;
+    border-color: #1f6feb;
+    color: white;
+}

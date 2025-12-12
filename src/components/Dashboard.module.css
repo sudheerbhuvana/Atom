@@ -1,0 +1,450 @@
+.wrapper {
+    max-width: 1400px;
+    /* Increased max-width */
+    margin: 0 auto;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* Prevent body scroll */
+}
+
+.wrapperFull {
+    max-width: 100%;
+    margin: 0;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.wrapperCompact {
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Header Section */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 2rem 2rem 1rem 2rem;
+    /* Add padding here */
+    flex-shrink: 0;
+    /* Prevent shrinking */
+}
+
+/* Search Section - Make it part of the fixed top area */
+.searchBarContainer {
+    padding: 0 2rem 1rem 2rem;
+    flex-shrink: 0;
+}
+
+.searchBar {
+    background: var(--bg-card);
+    border-radius: 999px;
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border: 1px solid var(--border-color);
+    transition: border-color var(--transition-fast);
+}
+
+.searchBar:focus-within {
+    border-color: var(--text-secondary);
+}
+
+.searchIcon {
+    color: var(--text-secondary);
+}
+
+.searchBar input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    outline: none;
+}
+
+.searchHint {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.date {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin-top: 0.2rem;
+    font-weight: 500;
+}
+
+.clockWidget {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+}
+
+.widgetRow {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+}
+
+.widgetControls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.weatherIcon {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.weatherPlaceholder {
+    color: var(--text-muted);
+    opacity: 0.5;
+}
+
+.clock {
+    font-size: 1.5rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+/* Scrollable Content */
+/* Scrollable Content */
+.contentGrid {
+    display: grid;
+    gap: 2rem;
+    flex: 1;
+    overflow: hidden;
+    /* Parent doesn't scroll */
+    padding: 0;
+    /* Remove padding from grid */
+    height: 100%;
+}
+
+.sectionHeader {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+.leftCol {
+    min-width: 350px;
+    overflow-y: auto;
+    height: 100%;
+    padding: 1rem 0 4rem 2rem;
+    /* Left padding */
+
+    /* Hide scrollbar */
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
+}
+
+/* Chrome, Safari, Opera */
+.leftCol::-webkit-scrollbar {
+    display: none;
+}
+
+.rightCol {
+    flex: 1;
+    overflow-y: auto;
+    height: 100%;
+    padding: 1rem 2rem 4rem 1rem;
+    /* Right padding */
+}
+
+.appList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.75rem;
+}
+
+.appList.list {
+    grid-template-columns: 1fr;
+}
+
+.appList.grid4 {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+.appList.grid6 {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+
+@media (min-width: 1400px) {
+    .appList.grid4 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .appList.grid6 {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+@media (max-width: 1024px) {
+
+    .appList.grid6,
+    .appList.grid4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+
+    .appList.grid6,
+    .appList.grid4 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Loader */
+.loader {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+}
+
+.layoutControls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.layoutBtn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+}
+
+.layoutBtn:hover,
+.layoutBtn.active {
+    color: var(--text-primary);
+    background: var(--bg-hover);
+}
+
+/* Footer */
+.footer {
+    margin-top: 4rem;
+}
+
+/* Empty State */
+.emptyState {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+}
+
+.emptyState p {
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.searchWebBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    background: #222222;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.searchWebBtn:hover {
+    background: #2a2a2a;
+}
+
+.settingsBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.settingsBtn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+@media (min-width: 1024px) {
+    .contentGrid:not(.fullWidth) {
+        grid-template-columns: 350px 1fr;
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .wrapper {
+        padding: 1.5rem 1.5rem;
+        /* Slightly more side padding */
+        height: auto;
+        overflow: visible;
+        display: block;
+    }
+
+    .wrapperFull,
+    .wrapperCompact {
+        padding: 1.5rem 1.5rem;
+        /* Force matching padding */
+        height: auto;
+        overflow: visible;
+        display: block;
+        max-width: 100%;
+        /* Reset max-width logic */
+        margin: 0;
+    }
+
+    .contentGrid {
+        height: auto;
+        overflow: visible;
+        display: block;
+        padding: 0;
+        margin-top: 1rem;
+        /* Extra breathing room */
+        gap: 3rem;
+        /* Restore gap between sections */
+    }
+
+    .leftCol,
+    .rightCol {
+        height: auto;
+        overflow: visible;
+        padding: 0;
+    }
+
+    /* Ensure specific gap between widgets and apps if stacked */
+    .leftCol {
+        margin-bottom: 3rem;
+    }
+
+    .searchBarContainer {
+        padding: 0;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.5rem;
+        padding: 0 0 1rem 0;
+    }
+
+    .title {
+        font-size: 1.75rem;
+        /* Larger title */
+        line-height: 1.2;
+    }
+
+    .subtitle {
+        font-size: 1.1rem;
+        margin-top: 0.25rem;
+    }
+
+    .date {
+        font-size: 0.85rem;
+        opacity: 0.8;
+        margin-bottom: 0.25rem;
+    }
+
+    .clockWidget {
+        width: 100%;
+        align-items: flex-start;
+        flex-direction: row;
+        /* Horizontal clock/weather */
+        justify-content: space-between;
+        align-items: flex-end;
+        /* Align bottom */
+        margin-top: 0.5rem;
+    }
+
+    .widgetRow {
+        flex-direction: column;
+        /* Stack stats */
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+
+    .clock {
+        font-size: 1.5rem;
+    }
+
+    .searchBar {
+        padding: 0.8rem 1.25rem;
+        margin-bottom: 3rem;
+        /* significantly more space */
+    }
+
+    .searchBar input {
+        font-size: 1rem;
+    }
+
+    .searchIcon {
+        width: 18px;
+        height: 18px;
+    }
+
+    .searchHint {
+        display: none;
+    }
+
+    .layoutControls {
+        display: none;
+    }
+
+    .sectionHeader {
+        font-size: 1.35rem;
+        /* Larger section headers */
+        margin-bottom: 1.5rem;
+    }
+
+    .appList {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.75rem;
+    }
+}
