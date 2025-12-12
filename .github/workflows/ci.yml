@@ -6,19 +6,13 @@ on:
     paths-ignore:
       - '**/*.md'
       - 'docs/**'
-      - 'README.md'
       - 'LICENSE'
-      - '.github/**'
-      - '.vscode/**'
   pull_request:
     branches: [main, develop]
     paths-ignore:
       - '**/*.md'
       - 'docs/**'
-      - 'README.md'
       - 'LICENSE'
-      - '.github/**'
-      - '.vscode/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -40,14 +34,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-
-      - name: Cache build & node_modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            .next/cache
-          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
         run: npm ci
@@ -95,3 +81,4 @@ jobs:
         with:
           name: app-build
           path: .next/
+          retention-days: 7

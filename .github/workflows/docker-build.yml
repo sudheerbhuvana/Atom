@@ -4,6 +4,7 @@ on:
   workflow_run:
     workflows: ["CI"]
     types: [completed]
+    branches: [main]  # Only trigger on main branch
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -11,11 +12,7 @@ concurrency:
 
 jobs:
   docker:
-    if: >
-      ${{
-        github.event.workflow_run.conclusion == 'success' &&
-        github.event.workflow_run.head_branch == 'main'
-      }}
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     environment: DockerHub
 
@@ -23,25 +20,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2   # required for commit comparison
-
-      - name: Detect file changes
-        id: changes
-        uses: tj-actions/changed-files@v45
-        with:
-          files_ignore: |
-            **/*.md
-            docs/**
-            LICENSE
-            .github/**
-            .vscode/**
-          since_last_remote_commit: true
-
-      - name: Skip Docker build if only docs or ignored files changed
-        if: steps.changes.outputs.only_changed == 'true'
-        run: |
-          echo "✅ Only documentation or ignored files changed. Skipping Docker build."
-          exit 0
+          ref: ${{ github.event.workflow_run.head_sha }}  # Checkout the correct commit
 
       - name: Set up QEMU (for arm64 emulation)
         uses: docker/setup-qemu-action@v3
@@ -57,13 +36,15 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Restore Docker build cache
-        uses: actions/cache@v4
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
         with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
+          images: sudheerbhuvana25/atom-homepage
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=,format=short
+            type=raw,value=${{ github.run_number }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
@@ -72,19 +53,11 @@ jobs:
           file: ./Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: |
-            sudheerbhuvana25/atom-homepage:latest
-            sudheerbhuvana25/atom-homepage:${{ github.run_number }}
-            sudheerbhuvana25/atom-homepage:${{ github.sha }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           provenance: false
-
-      - name: Move new cache into place
-        if: always()
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
       - name: Log out from Docker Hub
         if: always()
