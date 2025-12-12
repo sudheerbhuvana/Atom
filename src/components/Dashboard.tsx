@@ -253,13 +253,22 @@ export default function Dashboard({ user }: { user?: { username: string } }) {
                             </div>
 
                             <div className={`${styles.appList} ${styles[layout]}`}>
-                                {filteredServices.map(service => (
-                                    <ServiceCard
-                                        key={service.id}
-                                        service={service}
-                                        compact={config.layout?.fullSizeButtons === false}
-                                    />
-                                ))}
+                                {filteredServices.length > 0 ? (
+                                    filteredServices.map(service => (
+                                        <ServiceCard
+                                            key={service.id}
+                                            service={service}
+                                            compact={config.layout?.fullSizeButtons === false}
+                                        />
+                                    ))
+                                ) : (
+                                    <div className={styles.emptyState}>
+                                        <p style={{ marginBottom: '0.5rem' }}>No applications configured yet</p>
+                                        <a href="/settings" className={styles.searchWebBtn}>
+                                            Add applications in Settings
+                                        </a>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
