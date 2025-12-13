@@ -2,7 +2,7 @@
 <p align="center">
   <img src="https://github.com/sudheerbhuvana/Atom/blob/main/public/atom-logo.png?raw=true" alt="Atom Dashboard" />
 </p>
-<p> A modern, lightweight self-hosted dashboard for monitoring services, Docker containers, and system resources. Built with Next.js 15 for speed and simplicity. <p/>
+<p> A modern, lightweight self-hosted dashboard for monitoring services, Docker containers, and system resources. Built with Next.js 16 for speed and simplicity. <p/>
 <p align="center">
   <img src="https://img.shields.io/github/actions/workflow/status/sudheerbhuvana/atom-homepage/docker-build.yml" alt="Docker Builds" />
   <img src="https://img.shields.io/docker/pulls/sudheerbhuvana25/atom-homepage" alt="Docker Pulls" />
