@@ -53,7 +53,7 @@
         "@types/better-sqlite3": "^7.6.13",
         "@types/dockerode": "^3.3.47",
         "@types/jest": "^30.0.0",
-        "@types/node": "^20",
+        "@types/node": "^25",
         "@types/ping": "^0.4.4",
         "@types/react": "^19",
         "@types/react-dom": "^19",
