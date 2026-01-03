@@ -41,7 +41,7 @@
         "react-dom": "19.2.0",
         "simple-icons": "^16.3.0",
         "sonner": "^2.0.7",
-        "systeminformation": "^5.27.11",
+        "systeminformation": "^5.28.10",
         "tcp-ping": "^0.1.1",
         "zod": "^4.3.4"
     },
