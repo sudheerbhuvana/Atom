@@ -1,0 +1,159 @@
+version: "3.8"
+
+# Example: Protecting applications with oauth2-proxy + Atom OIDC
+# Each app gets its own oauth2-proxy sidecar container
+
+services:
+  # ============================================================================
+  # Atom Dashboard (SSO Provider)
+  # ============================================================================
+  atom:
+    build: .
+    container_name: atom-dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      - OAUTH_ISSUER_URL=http://atom:3000 # Change to your domain in production
+      - DATA_DIR=/app/data
+    volumes:
+      - ./data:/app/data
+    networks:
+      media_stack:
+        ipv4_address: 172.30.0.2
+    restart: unless-stopped
+
+  # ============================================================================
+  # Example 1: Grafana with oauth2-proxy
+  # ============================================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      # Configure Grafana to trust proxy headers
+      - GF_AUTH_PROXY_ENABLED=true
+      - GF_AUTH_PROXY_HEADER_NAME=X-Forwarded-User
+      - GF_AUTH_PROXY_AUTO_SIGN_UP=true
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      media_stack:
+        ipv4_address: 172.30.0.10
+
+  grafana-auth:
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
+    container_name: grafana-auth
+    command:
+      - --provider=oidc
+      - --oidc-issuer-url=http://172.30.0.2:3000 # Atom's IP
+      - --client-id=CHANGE_ME # Create in Atom UI
+      - --client-secret=CHANGE_ME # Create in Atom UI
+      - --cookie-secret=CHANGE_ME_32_CHARS_RANDOM # Generate with: openssl rand -base64 32
+      - --redirect-url=http://localhost:8080/oauth2/callback # Change to your domain
+      - --upstream=http://172.30.0.10:3000 # Grafana's IP
+      - --email-domain=*
+      - --pass-user-headers=true
+      - --pass-access-token=true
+      - --cookie-secure=false # Set to true in production with HTTPS
+      - --http-address=0.0.0.0:4180
+    ports:
+      - "8080:4180"
+    networks:
+      media_stack:
+        ipv4_address: 172.30.0.11
+    depends_on:
+      - atom
+      - grafana
+    restart: unless-stopped
+
+  # ============================================================================
+  # Example 2: Sonarr with oauth2-proxy
+  # ============================================================================
+  sonarr:
+    image: linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Kolkata
+    volumes:
+      - ./sonarr:/config
+    networks:
+      media_stack:
+        ipv4_address: 172.30.0.12
+
+  sonarr-auth:
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
+    container_name: sonarr-auth
+    command:
+      - --provider=oidc
+      - --oidc-issuer-url=http://172.30.0.2:3000
+      - --client-id=CHANGE_ME_SONARR
+      - --client-secret=CHANGE_ME_SONARR
+      - --cookie-secret=CHANGE_ME_32_CHARS_RANDOM_DIFFERENT
+      - --redirect-url=http://localhost:8989/oauth2/callback
+      - --upstream=http://172.30.0.12:8989
+      - --email-domain=*
+      - --pass-user-headers=true
+      - --cookie-secure=false
+      - --http-address=0.0.0.0:4180
+    ports:
+      - "8989:4180"
+    networks:
+      media_stack:
+        ipv4_address: 172.30.0.13
+    depends_on:
+      - atom
+      - sonarr
+    restart: unless-stopped
+
+  # ============================================================================
+  # Example 3: Radarr with oauth2-proxy
+  # ============================================================================
+  radarr:
+    image: linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Kolkata
+    volumes:
+      - ./radarr:/config
+    networks:
+      media_stack:
+        ipv4_address: 172.30.0.14
+
+  radarr-auth:
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
+    container_name: radarr-auth
+    command:
+      - --provider=oidc
+      - --oidc-issuer-url=http://172.30.0.2:3000
+      - --client-id=CHANGE_ME_RADARR
+      - --client-secret=CHANGE_ME_RADARR
+      - --cookie-secret=CHANGE_ME_32_CHARS_RANDOM_YET_ANOTHER
+      - --redirect-url=http://localhost:7878/oauth2/callback
+      - --upstream=http://172.30.0.14:7878
+      - --email-domain=*
+      - --pass-user-headers=true
+      - --cookie-secure=false
+      - --http-address=0.0.0.0:4180
+    ports:
+      - "7878:4180"
+    networks:
+      media_stack:
+        ipv4_address: 172.30.0.15
+    depends_on:
+      - atom
+      - radarr
+    restart: unless-stopped
+
+volumes:
+  grafana_data:
+
+networks:
+  media_stack:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24

@@ -14,6 +14,7 @@ export interface Service {
     description?: string;
     color?: string; // Optional accent color override
     ping?: string;  // Optional Host/IP for ICMP ping
+    tags?: string[]; // Access control tags
     createdAt?: number;
     updatedAt?: number;
 }

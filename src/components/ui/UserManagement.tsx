@@ -8,6 +8,8 @@ import styles from './UserManagement.module.css';
 interface UserData {
     id: number;
     username: string;
+    email?: string;
+    tags?: string[];
     created_at: string;
 }
 
@@ -21,6 +23,8 @@ export default function UserManagement() {
     // Form states
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [email, setEmail] = useState('');
+    const [tags, setTags] = useState('');
     const [error, setError] = useState('');
 
     useEffect(() => {
@@ -42,7 +46,7 @@ export default function UserManagement() {
     };
 
     const handleAddUser = async () => {
-        if (!username || !password) {
+        if (!username || !password || !email) {
             setError('All fields required');
             return;
         }
@@ -55,7 +59,12 @@ export default function UserManagement() {
             const res = await fetch('/api/users', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
+                body: JSON.stringify({
+                    username,
+                    password,
+                    email,
+                    tags: tags.split(',').map(t => t.trim()).filter(Boolean)
+                })
             });
 
             const data = await res.json();
@@ -130,6 +139,8 @@ export default function UserManagement() {
     const resetForm = () => {
         setUsername('');
         setPassword('');
+        setEmail('');
+        setTags('');
         setError('');
         setSelectedUser(null);
     };
@@ -144,6 +155,12 @@ export default function UserManagement() {
                         <div className={styles.userInfo}>
                             <User size={20} className={styles.userIcon} />
                             <span>{u.username}</span>
+                            {u.email && <span className={styles.email}>({u.email})</span>}
+                            {u.tags && u.tags.length > 0 && (
+                                <span className={styles.tags}>
+                                    {u.tags.map(t => <span key={t} className={styles.tag}>{t}</span>)}
+                                </span>
+                            )}
                             <span className={styles.date}>Member since {new Date(u.created_at).toLocaleDateString()}</span>
                         </div>
                         <div className={styles.actions}>
@@ -183,15 +200,35 @@ export default function UserManagement() {
 
                         <div className={styles.body}>
                             {showAddModal && (
-                                <div className={styles.field}>
-                                    <label>Username</label>
-                                    <input
-                                        autoFocus
-                                        value={username}
-                                        onChange={e => setUsername(e.target.value)}
-                                        placeholder="Username"
-                                    />
-                                </div>
+                                <>
+                                    <div className={styles.field}>
+                                        <label>Username</label>
+                                        <input
+                                            autoFocus
+                                            value={username}
+                                            onChange={e => setUsername(e.target.value)}
+                                            placeholder="Username"
+                                        />
+                                    </div>
+                                    <div className={styles.field}>
+                                        <label>Email</label>
+                                        <input
+                                            type="email"
+                                            value={email}
+                                            onChange={e => setEmail(e.target.value)}
+                                            placeholder="user@example.com"
+                                        />
+                                    </div>
+                                    <div className={styles.field}>
+                                        <label>Tags (Optional)</label>
+                                        <input
+                                            value={tags}
+                                            onChange={e => setTags(e.target.value)}
+                                            placeholder="admin, dev, finance"
+                                        />
+                                        <span className={styles.hint}>Comma-sparated tags for access control</span>
+                                    </div>
+                                </>
                             )}
                             <div className={styles.field}>
                                 <label>Password (min 8 chars)</label>
@@ -216,7 +253,8 @@ export default function UserManagement() {
                         </div>
                     </div>
                 </div>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 }

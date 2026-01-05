@@ -35,18 +35,20 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const { username, password } = validationResult.data;
+        const { username, password, email, tags } = validationResult.data;
 
         // Hash password first
         const passHash = await hashPassword(password);
 
         try {
             // createUser handles race conditions internally
-            const newUser = createUser(username, passHash);
+            const newUser = createUser(username, passHash, email, tags);
 
             return NextResponse.json({
                 id: newUser.id,
                 username: newUser.username,
+                email: newUser.email,
+                tags: newUser.tags,
                 created_at: newUser.created_at
             });
         } catch (e: unknown) {

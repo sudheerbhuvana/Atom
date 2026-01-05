@@ -15,7 +15,7 @@ import styles from './Dashboard.module.css';
 import { useConfig } from '@/context/ConfigContext';
 
 
-export default function Dashboard({ user }: { user?: { username: string } }) {
+export default function Dashboard({ user }: { user?: { username: string; tags?: string[] } }) {
     const { config, updateConfig, loading } = useConfig();
     const [search, setSearch] = useState('');
     const [layout, setLayout] = useState<'list' | 'grid4' | 'grid6'>('grid6');
@@ -26,7 +26,6 @@ export default function Dashboard({ user }: { user?: { username: string } }) {
 
     // Initial Status Check
     useEffect(() => {
-        if (!config?.services) return;
         if (!config?.services) return;
         // Fire and forget, context handles throttling
         checkMany(config.services);
@@ -118,10 +117,23 @@ export default function Dashboard({ user }: { user?: { username: string } }) {
         return 'Good Evening';
     };
 
-    const filteredServices = config.services.filter(s =>
-        s.name.toLowerCase().includes(search.toLowerCase()) ||
-        s.url.toLowerCase().includes(search.toLowerCase())
-    );
+    const userTags = user?.tags || [];
+    const hasAllAccess = userTags.includes('all');
+
+    const filteredServices = config.services.filter(s => {
+        // Tag Access Control
+        if (!hasAllAccess) {
+            const serviceTags = s.tags || [];
+            if (serviceTags.length > 0) {
+                const hasMatchingTag = serviceTags.some(t => userTags.includes(t));
+                if (!hasMatchingTag) return false;
+            }
+        }
+
+        // Search Filter
+        return s.name.toLowerCase().includes(search.toLowerCase()) ||
+            s.url.toLowerCase().includes(search.toLowerCase());
+    });
 
     const getSearchUrl = (query: string) => {
         const searchEngines: { [key: string]: string } = {

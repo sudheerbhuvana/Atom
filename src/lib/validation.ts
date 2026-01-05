@@ -21,6 +21,7 @@ export const serviceSchema = z.object({
     description: z.string().optional(),
     color: z.string().optional(),
     ping: z.string().optional(),
+    tags: z.array(z.string()).optional(),
     createdAt: z.number().optional(),
     updatedAt: z.number().optional(),
 });
@@ -80,6 +81,7 @@ export const loginSchema = z.object({
 
 export const registerSchema = z.object({
     username: usernameSchema,
+    email: z.string().email('Invalid email address').optional(),
     password: passwordSchema,
 });
 
@@ -90,6 +92,8 @@ export const changePasswordSchema = z.object({
 
 export const createUserSchema = z.object({
     username: usernameSchema,
+    email: z.string().email('Invalid email address').optional(),
+    tags: z.array(z.string()).optional(),
     password: passwordSchema,
 });
 

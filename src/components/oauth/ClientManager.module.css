@@ -1,0 +1,521 @@
+.container {
+    padding: 1.5rem;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.addButton {
+    background: var(--accent-color);
+    color: #fff;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: opacity 0.2s;
+}
+
+.addButton:hover {
+    opacity: 0.9;
+}
+
+.createdClientCard {
+    background: var(--bg-card);
+    border: 2px solid var(--accent-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.successBanner {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--accent-color);
+    font-weight: 500;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+}
+
+.credentialRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: var(--bg-primary);
+    border-radius: var(--radius-sm);
+}
+
+.credentialRow label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.3rem;
+}
+
+.credentialRow code {
+    display: block;
+    font-family: 'Monaco', 'Courier', monospace;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+.credentialRow button {
+    background: var(--bg-hover);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 0.5rem;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: background 0.2s;
+    min-width: 70px;
+    font-size: 0.85rem;
+}
+
+.credentialRow button:hover {
+    background: var(--bg-card);
+}
+
+.dismissButton {
+    width: 100%;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.6rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.formCard {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.formCard h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+}
+
+.formGroup {
+    margin-bottom: 1.25rem;
+}
+
+.formGroup label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.formGroup input {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.formGroup input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.uriRow {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.uriRow input {
+    flex: 1;
+}
+
+.removeButton {
+    padding: 0.75rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.removeButton:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.addUriButton {
+    padding: 0.5rem 1rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+}
+
+.addUriButton:hover {
+    background: var(--bg-hover);
+}
+
+.formActions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.cancelButton {
+    flex: 1;
+    padding: 0.75rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.saveButton {
+    flex: 1;
+    padding: 0.75rem;
+    background: var(--accent-color);
+    border: none;
+    color: #fff;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.saveButton:hover {
+    opacity: 0.9;
+}
+
+.emptyState {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-secondary);
+}
+
+.emptyHint {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+.clientList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.clientCard {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+}
+
+.clientHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 1rem;
+}
+
+.clientHeader h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.3rem;
+}
+
+.clientHeader p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.deleteButton {
+    padding: 0.5rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.deleteButton:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.clientDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.detailRow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+}
+
+.detailRow>span:first-child {
+    color: var(--text-secondary);
+    font-weight: 500;
+    min-width: 110px;
+}
+
+.detailRow code {
+    font-family: 'Monaco', 'Courier', monospace;
+    font-size: 0.85rem;
+    background: var(--bg-primary);
+    padding: 0.3rem 0.6rem;
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+}
+
+.detailRow button {
+    padding: 0.3rem 0.6rem;
+    background: var(--bg-hover);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--text-primary);
+    font-size: 0.8rem;
+}
+
+.scopes {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.scope {
+    background: var(--accent-color);
+    color: #fff;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.uris {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.meta {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.actionButtons {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.dockerButton {
+    flex: 1;
+    padding: 0.75rem;
+    background: var(--bg-hover);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: background 0.2s;
+}
+
+.dockerButton:hover {
+    background: var(--bg-primary);
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.modalContent {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    max-width: 700px;
+    width: 100%;
+    max-height: 90vh;
+    overflow: auto;
+}
+
+.modalHeader {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modalHeader h3 {
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.modalHeader button {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+}
+
+.modalBody {
+    padding: 1.5rem;
+}
+
+.modalBody p {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.codeBlock {
+    position: relative;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.copyCodeButton {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--text-primary);
+}
+
+.codeBlock pre {
+    margin: 0;
+    overflow-x: auto;
+    font-size: 0.85rem;
+}
+
+.codeBlock code {
+    font-family: 'Monaco', 'Courier', monospace;
+    color: var(--text-primary);
+}
+
+.setupSteps {
+    margin-top: 1.5rem;
+    background: var(--bg-primary);
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+}
+
+.setupSteps h4 {
+    margin: 0 0 0.75rem 0;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.setupSteps ol {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.setupSteps li {
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.setupSteps code {
+    background: var(--bg-card);
+    padding: 0.2rem 0.4rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    color: var(--accent-color);
+}
+
+.scopeSelector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.scopeCheckbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.scopeCheckbox input[type="checkbox"] {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+}
+
+.scopeCheckbox span {
+    margin-left: 0.5rem;
+}
+
+.hint {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}

@@ -10,10 +10,26 @@ export default function LoginPage() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [checking, setChecking] = useState(true);
+    const [providers, setProviders] = useState<{ name: string; slug: string }[]>([]);
     const router = useRouter();
 
-    // Check if onboarding is needed
+    // Check if onboarding is needed & Check for errors & fetch providers
     useEffect(() => {
+        // Parse URL params for errors
+        const params = new URLSearchParams(window.location.search);
+        const errorMsg = params.get('error');
+        if (errorMsg) {
+            setError(decodeURIComponent(errorMsg));
+        }
+
+        // Fetch Providers
+        fetch('/api/auth/providers')
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) setProviders(data);
+            })
+            .catch(console.error);
+
         // Safety timeout in case fetch hangs
         const timeout = setTimeout(() => setChecking(false), 5000);
 
@@ -110,6 +126,31 @@ export default function LoginPage() {
                         {loading ? 'Signing in...' : 'Sign In'}
                     </button>
                 </form>
+
+                {providers.length > 0 && (
+                    <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border-color)' }}>
+                        <div style={{ marginBottom: '1rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                            Or continue with
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {providers.map(p => (
+                                <button
+                                    key={p.slug}
+                                    type="button"
+                                    className={styles.button}
+                                    style={{
+                                        backgroundColor: 'var(--bg-secondary)',
+                                        color: 'var(--text-primary)',
+                                        border: '1px solid var(--border-color)'
+                                    }}
+                                    onClick={() => window.location.href = `/api/auth/${p.slug}/login`}
+                                >
+                                    Sign in with {p.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

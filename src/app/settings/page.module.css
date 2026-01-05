@@ -1,28 +1,21 @@
 .wrapper {
-    max-width: 900px;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 3rem 2rem;
-    color: #fff;
-}
-
-.loading {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    padding: 2rem;
     height: 100vh;
-    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    color: #fff;
+    overflow: hidden;
 }
 
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2.5rem;
-}
-
-.header h1 {
-    font-size: 1.5rem;
-    font-weight: 600;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 0;
 }
 
 .headerActions {
@@ -32,28 +25,86 @@
 }
 
 .themeToggle {
-    background: none;
-    border: none;
-    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.4rem;
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s, color 0.2s;
+    transition: all 0.2s;
 }
 
 .themeToggle:hover {
-    background: var(--bg-card);
+    background: var(--bg-hover);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.mainContainer {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    gap: 2rem;
+    padding-top: 2rem;
+}
+
+.sidebar {
+    width: 250px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow-y: auto;
+    padding-right: 1rem;
+}
+
+.content {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 2rem;
+}
+
+.navItem {
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.navItem:hover {
+    background: var(--bg-hover);
     color: var(--text-primary);
+}
+
+.navItem.active {
+    background: var(--bg-hover);
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+.navSectionTitle {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin: 1.5rem 0 0.5rem 1rem;
+    font-weight: 600;
 }
 
 .backBtn {
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    background: var(--bg-card);
+    background: transparent;
     border: 1px solid var(--border-color);
     padding: 0.4rem 0.8rem;
     border-radius: var(--radius-sm);
@@ -324,4 +375,50 @@
 .chipRemove:hover {
     background: rgba(255, 59, 48, 0.1);
     color: #ff3b30;
+}
+
+.infoBox {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.infoBox h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+}
+
+.infoBox p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+}
+
+.infoBox ul {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0;
+}
+
+.infoBox li {
+    padding: 0.5rem 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.infoBox code {
+    background: var(--bg-primary);
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-family: 'Monaco', 'Courier', monospace;
+    font-size: 0.8rem;
+    color: var(--accent-color);
 }

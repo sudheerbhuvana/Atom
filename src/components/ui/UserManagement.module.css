@@ -41,7 +41,33 @@
 .date {
     font-size: 0.8rem;
     color: var(--text-secondary);
+    color: var(--text-secondary);
     font-weight: 400;
+}
+
+.email {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-right: 0.5rem;
+}
+
+.tags {
+    display: flex;
+    gap: 0.3rem;
+    margin-right: auto;
+}
+
+.tag {
+    font-size: 0.75rem;
+    background: var(--bg-hover);
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    color: var(--text-secondary);
+}
+
+.hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
 }
 
 .actions {

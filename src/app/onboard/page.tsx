@@ -6,6 +6,7 @@ import styles from './page.module.css';
 
 export default function OnboardPage() {
     const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
@@ -32,7 +33,7 @@ export default function OnboardPage() {
             const res = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify({ username, email, password }),
             });
 
             const data = await res.json();
@@ -67,6 +68,17 @@ export default function OnboardPage() {
                             placeholder="admin"
                             required
                             autoFocus
+                        />
+                    </div>
+
+                    <div className={styles.inputGroup}>
+                        <label>Email</label>
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="admin@example.com"
+                            required
                         />
                     </div>
 
