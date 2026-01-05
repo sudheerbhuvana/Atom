@@ -11,6 +11,8 @@ import EditServiceModal from '@/components/modals/EditServiceModal';
 import AddWidgetModal from '@/components/modals/AddWidgetModal';
 import EditWidgetModal from '@/components/modals/EditWidgetModal';
 import UserManagement from '@/components/ui/UserManagement';
+import ClientManager from '@/components/oauth/ClientManager';
+import AuthProviderManager from '@/components/oauth/AuthProviderManager';
 import { useConfig } from '@/context/ConfigContext';
 import styles from './page.module.css';
 
@@ -23,6 +25,7 @@ export default function SettingsPage() {
     const [editingWidget, setEditingWidget] = useState<Widget | null>(null);
     const [localTitle, setLocalTitle] = useState('');
     const [localLocation, setLocalLocation] = useState('');
+    const [activeSection, setActiveSection] = useState('general');
 
     useEffect(() => {
         if (config) {
@@ -160,6 +163,256 @@ export default function SettingsPage() {
         reader.readAsText(file);
     };
 
+    const renderContent = () => {
+        switch (activeSection) {
+            case 'general':
+                return (
+                    <section className={styles.section}>
+                        <h2 className={styles.sectionTitle}>General</h2>
+                        <p className={styles.sectionDesc}>Show or hide widgets on your dashboard.</p>
+
+                        <div className={styles.controlRow}>
+                            <label>Show Widgets</label>
+                            <div
+                                className={`${styles.toggle} ${config?.layout?.showWidgets ? styles.active : ''}`}
+                                onClick={() => updateLayout('showWidgets', !config?.layout?.showWidgets)}
+                            >
+                                <div className={styles.thumb} />
+                            </div>
+                        </div>
+
+                        <div className={styles.controlRow}>
+                            <label>Dashboard Title</label>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                <input
+                                    className={styles.input}
+                                    value={localTitle}
+                                    onChange={(e) => setLocalTitle(e.target.value)}
+                                    placeholder="Dashboard Title"
+                                />
+                                <button
+                                    className={styles.btnPrimary}
+                                    onClick={() => {
+                                        if (config) {
+                                            updateConfig({ ...config, title: localTitle });
+                                            toast.success('Dashboard Title saved');
+                                        }
+                                    }}
+                                    title="Save Title"
+                                >
+                                    <Save size={16} />
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className={styles.controlRow}>
+                            <label>Weather Location</label>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                <input
+                                    className={styles.input}
+                                    value={localLocation}
+                                    onChange={(e) => setLocalLocation(e.target.value)}
+                                    placeholder="City (e.g. Hyderabad)"
+                                />
+                                <button
+                                    className={styles.btnPrimary}
+                                    onClick={() => {
+                                        if (config) {
+                                            updateConfig({
+                                                ...config,
+                                                weather: { ...config.weather, location: localLocation }
+                                            });
+                                            toast.success('Weather Location saved');
+                                        }
+                                    }}
+                                    title="Save Location"
+                                >
+                                    <Save size={16} />
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className={styles.controlRow}>
+                            <label>Default Search</label>
+                            <select
+                                className={styles.select}
+                                value={config?.searchEngine || 'Google'}
+                                onChange={(e) => config && updateConfig({ ...config, searchEngine: e.target.value })}
+                            >
+                                <option value="Google">Google</option>
+                                <option value="DuckDuckGo">DuckDuckGo</option>
+                                <option value="Bing">Bing</option>
+                            </select>
+                        </div>
+
+                        <div className={styles.controlRow}>
+                            <label>Dashboard Width</label>
+                            <select
+                                className={styles.select}
+                                value={config?.layout?.containerWidth || 'centered'}
+                                onChange={(e) => updateLayout('containerWidth', e.target.value)}
+                            >
+                                <option value="full">Full Screen</option>
+                                <option value="centered">Centered (Default)</option>
+                                <option value="compact">Compact</option>
+                            </select>
+                        </div>
+                    </section>
+                );
+            case 'applications':
+                return (
+                    <section className={styles.section}>
+                        <h2 className={styles.sectionTitle}>Applications</h2>
+
+                        <div className={styles.controlRow}>
+                            <label>Display Full Size Buttons</label>
+                            <div
+                                className={`${styles.toggle} ${config?.layout?.fullSizeButtons ? styles.active : ''}`}
+                                onClick={() => updateLayout('fullSizeButtons', !config?.layout?.fullSizeButtons)}
+                            >
+                                <div className={styles.thumb} />
+                            </div>
+                        </div>
+
+                        <div className={styles.actionsRow}>
+                            <button className={styles.btnPrimary} onClick={() => { setEditingItem(null); setActiveModal('add-app'); }}>
+                                <Plus size={16} /> Add Application
+                            </button>
+                            <button className={styles.btnSecondary} onClick={() => setActiveModal('edit-app')}>
+                                <Edit3 size={16} /> Edit Applications
+                            </button>
+                            <button className={styles.btnDanger} onClick={handleDeleteAllServices}>
+                                <Trash2 size={16} /> Delete All Applications
+                            </button>
+                        </div>
+                    </section>
+                );
+            case 'bookmarks':
+                return (
+                    <section className={styles.section}>
+                        <h2 className={styles.sectionTitle}>Bookmarks</h2>
+                        <div className={styles.actionsRow}>
+                            <button className={styles.btnPrimary} onClick={() => { setEditingItem(null); setActiveModal('add-link'); }}>
+                                <Plus size={16} /> Add Bookmark
+                            </button>
+                            <button className={styles.btnSecondary} onClick={() => setActiveModal('edit-link')}>
+                                <Edit3 size={16} /> Edit Bookmarks
+                            </button>
+                            <button className={styles.btnDanger} onClick={handleDeleteAllLinks}>
+                                <Trash2 size={16} /> Delete All Bookmarks
+                            </button>
+                        </div>
+                    </section>
+                );
+            case 'widgets':
+                return (
+                    <section className={styles.section}>
+                        <h2 className={styles.sectionTitle}>Widgets</h2>
+                        <div className={styles.actionsRow}>
+                            <button className={styles.btnPrimary} onClick={() => { setEditingItem(null); setActiveModal('add-widget'); }}>
+                                <Plus size={16} /> Add Widget
+                            </button>
+                            <button className={styles.btnSecondary} onClick={() => setActiveModal('edit-widget')}>
+                                <Edit3 size={16} /> Edit Widgets
+                            </button>
+                            <button className={styles.btnDanger}
+                                onClick={() => {
+                                    if (!config) return;
+                                    toast('Delete ALL widgets?', {
+                                        action: {
+                                            label: 'Delete',
+                                            onClick: () => updateConfig({ ...config, widgets: [] })
+                                        },
+                                        cancel: { label: 'Cancel', onClick: () => { } }
+                                    });
+                                }}
+                            >
+                                <Trash2 size={16} /> Delete All Widgets
+                            </button>
+                        </div>
+                    </section>
+                );
+            case 'users':
+                return (
+                    <section className={styles.section}>
+                        <h2 className={styles.sectionTitle}>Users</h2>
+                        <UserManagement />
+                    </section>
+                );
+            case 'sso':
+                return (
+                    <section className={styles.section}>
+                        <h2 className={styles.sectionTitle}>SSO Provider</h2>
+                        <p className={styles.sectionDesc}>
+                            Configure OAuth2/OIDC applications that can authenticate through Atom.
+                            Applications you add here can use Atom as their identity provider for single sign-on.
+                        </p>
+
+                        <div className={styles.infoBox}>
+                            <h4>OAuth2/OIDC Endpoints</h4>
+                            <p>Use these endpoints when configuring OAuth2 or OIDC in your applications:</p>
+                            <ul>
+                                <li><code>Discovery (OIDC):</code> <code>{typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/api/.well-known/openid-configuration</code></li>
+                                <li><code>Authorization:</code> <code>{typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/api/oauth/authorize</code></li>
+                                <li><code>Token:</code> <code>{typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/api/oauth/token</code></li>
+                                <li><code>UserInfo:</code> <code>{typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/api/oauth/userinfo</code></li>
+                                <li><code>JWKS:</code> <code>{typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/api/.well-known/jwks.json</code></li>
+                            </ul>
+                            <p style={{ marginTop: '1rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                <strong>Supported scopes:</strong> <code>openid</code>, <code>profile</code>, <code>username</code>, <code>email</code>
+                            </p>
+                            <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                For OIDC-compliant apps (oauth2-proxy, Grafana, etc.), use the Discovery URL for auto-configuration.
+                            </p>
+                        </div>
+
+                        <ClientManager />
+                    </section>
+                );
+            case 'external':
+                return (
+                    <section className={styles.section}>
+                        <h2 className={styles.sectionTitle}>External Login Providers</h2>
+                        <p className={styles.sectionDesc}>
+                            Allow users to sign in to Atom using external services like Google, Authentik, or GitHub.
+                        </p>
+                        <div style={{ padding: '0 0.5rem' }}>
+                            <AuthProviderManager />
+                        </div>
+                    </section>
+                );
+            case 'backup':
+                return (
+                    <section className={styles.section}>
+                        <h2 className={styles.sectionTitle}>Data & Backup</h2>
+                        <div className={styles.actionsRow}>
+                            <button onClick={() => {
+                                window.location.href = '/api/backup/db';
+                                toast.success('Downloading database...');
+                            }} className={styles.btnSecondary}>
+                                <Download size={16} /> Download DB
+                            </button>
+                            <button onClick={() => {
+                                config && setConfigJson(JSON.stringify(config, null, 2));
+                                setActiveModal('config');
+                            }} className={styles.btnPrimary}>
+                                <Code size={16} /> Edit Config
+                            </button>
+                            <button onClick={handleExport} className={styles.btnSecondary}>
+                                <Download size={16} /> Export JSON
+                            </button>
+                            <label className={styles.btnSecondary}>
+                                <Upload size={16} /> Import JSON
+                                <input type="file" hidden onChange={handleImport} accept=".json" />
+                            </label>
+                        </div>
+                    </section>
+                );
+            default:
+                return null;
+        }
+    };
+
     if (loading || !config) return <div className={styles.loading}>Loading...</div>;
 
     return (
@@ -182,198 +435,46 @@ export default function SettingsPage() {
                     >
                         {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
                     </button>
-                    <Link href="/" className={styles.backBtn}> <ArrowLeft size={16} /> Back</Link>
+                    <Link href="/" className={styles.backBtn}> <ArrowLeft size={16} /> Back to Dashboard</Link>
                 </div>
             </header>
 
-            <section className={styles.section}>
-                <h2 className={styles.sectionTitle}>General</h2>
-                <p className={styles.sectionDesc}>Show or hide widgets on your dashboard.</p>
-
-                <div className={styles.controlRow}>
-                    <label>Show Widgets</label>
-                    <div
-                        className={`${styles.toggle} ${config.layout?.showWidgets ? styles.active : ''}`}
-                        onClick={() => updateLayout('showWidgets', !config.layout?.showWidgets)}
-                    >
-                        <div className={styles.thumb} />
+            <div className={styles.mainContainer}>
+                <aside className={styles.sidebar}>
+                    <div className={styles.navSectionTitle}>General</div>
+                    <div className={`${styles.navItem} ${activeSection === 'general' ? styles.active : ''}`} onClick={() => setActiveSection('general')}>
+                        General
                     </div>
-                </div>
-
-                <div className={styles.controlRow}>
-                    <label>Dashboard Title</label>
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                        <input
-                            className={styles.input}
-                            value={localTitle}
-                            onChange={(e) => setLocalTitle(e.target.value)}
-                            placeholder="Dashboard Title"
-                        />
-                        <button
-                            className={styles.btnPrimary}
-                            onClick={() => {
-                                if (config) {
-                                    updateConfig({ ...config, title: localTitle });
-                                    toast.success('Dashboard Title saved');
-                                }
-                            }}
-                            title="Save Title"
-                        >
-                            <Save size={16} />
-                        </button>
+                    <div className={styles.navSectionTitle}>Content</div>
+                    <div className={`${styles.navItem} ${activeSection === 'applications' ? styles.active : ''}`} onClick={() => setActiveSection('applications')}>
+                        Applications
                     </div>
-                </div>
-
-                <div className={styles.controlRow}>
-                    <label>Weather Location</label>
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                        <input
-                            className={styles.input}
-                            value={localLocation}
-                            onChange={(e) => setLocalLocation(e.target.value)}
-                            placeholder="City (e.g. Hyderabad)"
-                        />
-                        <button
-                            className={styles.btnPrimary}
-                            onClick={() => {
-                                if (config) {
-                                    updateConfig({
-                                        ...config,
-                                        weather: { ...config.weather, location: localLocation }
-                                    });
-                                    toast.success('Weather Location saved');
-                                }
-                            }}
-                            title="Save Location"
-                        >
-                            <Save size={16} />
-                        </button>
+                    <div className={`${styles.navItem} ${activeSection === 'bookmarks' ? styles.active : ''}`} onClick={() => setActiveSection('bookmarks')}>
+                        Bookmarks
                     </div>
-                </div>
-
-                <div className={styles.controlRow}>
-                    <label>Default Search</label>
-                    <select
-                        className={styles.select}
-                        value={config.searchEngine || 'Google'}
-                        onChange={(e) => updateConfig({ ...config, searchEngine: e.target.value })}
-                    >
-                        <option value="Google">Google</option>
-                        <option value="DuckDuckGo">DuckDuckGo</option>
-                        <option value="Bing">Bing</option>
-                    </select>
-                </div>
-
-                <div className={styles.controlRow}>
-                    <label>Dashboard Width</label>
-                    <select
-                        className={styles.select}
-                        value={config.layout?.containerWidth || 'centered'}
-                        onChange={(e) => updateLayout('containerWidth', e.target.value)}
-                    >
-                        <option value="full">Full Screen</option>
-                        <option value="centered">Centered (Default)</option>
-                        <option value="compact">Compact</option>
-                    </select>
-                </div>
-            </section>
-
-            <section className={styles.section}>
-                <h2 className={styles.sectionTitle}>Applications</h2>
-
-                <div className={styles.controlRow}>
-                    <label>Display Full Size Buttons</label>
-                    <div
-                        className={`${styles.toggle} ${config.layout?.fullSizeButtons ? styles.active : ''}`}
-                        onClick={() => updateLayout('fullSizeButtons', !config.layout?.fullSizeButtons)}
-                    >
-                        <div className={styles.thumb} />
+                    <div className={`${styles.navItem} ${activeSection === 'widgets' ? styles.active : ''}`} onClick={() => setActiveSection('widgets')}>
+                        Widgets
                     </div>
-                </div>
+                    <div className={styles.navSectionTitle}>Access & Security</div>
+                    <div className={`${styles.navItem} ${activeSection === 'users' ? styles.active : ''}`} onClick={() => setActiveSection('users')}>
+                        Users
+                    </div>
+                    <div className={`${styles.navItem} ${activeSection === 'sso' ? styles.active : ''}`} onClick={() => setActiveSection('sso')}>
+                        SSO Provider
+                    </div>
+                    <div className={`${styles.navItem} ${activeSection === 'external' ? styles.active : ''}`} onClick={() => setActiveSection('external')}>
+                        External Login
+                    </div>
+                    <div className={styles.navSectionTitle}>System</div>
+                    <div className={`${styles.navItem} ${activeSection === 'backup' ? styles.active : ''}`} onClick={() => setActiveSection('backup')}>
+                        Data & Backup
+                    </div>
+                </aside>
 
-                <div className={styles.actionsRow}>
-                    <button className={styles.btnPrimary} onClick={() => { setEditingItem(null); setActiveModal('add-app'); }}>
-                        <Plus size={16} /> Add Application
-                    </button>
-                    <button className={styles.btnSecondary} onClick={() => setActiveModal('edit-app')}>
-                        <Edit3 size={16} /> Edit Applications
-                    </button>
-                    <button className={styles.btnDanger} onClick={handleDeleteAllServices}>
-                        <Trash2 size={16} /> Delete All Applications
-                    </button>
-                </div>
-            </section>
-
-            <section className={styles.section}>
-                <h2 className={styles.sectionTitle}>Bookmarks</h2>
-                <div className={styles.actionsRow}>
-                    <button className={styles.btnPrimary} onClick={() => { setEditingItem(null); setActiveModal('add-link'); }}>
-                        <Plus size={16} /> Add Bookmark
-                    </button>
-                    <button className={styles.btnSecondary} onClick={() => setActiveModal('edit-link')}>
-                        <Edit3 size={16} /> Edit Bookmarks
-                    </button>
-                    <button className={styles.btnDanger} onClick={handleDeleteAllLinks}>
-                        <Trash2 size={16} /> Delete All Bookmarks
-                    </button>
-                </div>
-            </section>
-
-            <section className={styles.section}>
-                <h2 className={styles.sectionTitle}>Widgets</h2>
-                <div className={styles.actionsRow}>
-                    <button className={styles.btnPrimary} onClick={() => { setEditingItem(null); setActiveModal('add-widget'); }}>
-                        <Plus size={16} /> Add Widget
-                    </button>
-                    <button className={styles.btnSecondary} onClick={() => setActiveModal('edit-widget')}>
-                        <Edit3 size={16} /> Edit Widgets
-                    </button>
-                    <button className={styles.btnDanger}
-                        onClick={() => {
-                            if (!config) return;
-                            toast('Delete ALL widgets?', {
-                                action: {
-                                    label: 'Delete',
-                                    onClick: () => updateConfig({ ...config, widgets: [] })
-                                },
-                                cancel: { label: 'Cancel', onClick: () => { } }
-                            });
-                        }}
-                    >
-                        <Trash2 size={16} /> Delete All Widgets
-                    </button>
-                </div>
-            </section>
-
-            <section className={styles.section}>
-                <h2 className={styles.sectionTitle}>Users</h2>
-                <UserManagement />
-            </section>
-
-            <section className={styles.section}>
-                <h2 className={styles.sectionTitle}>Data & Backup</h2>
-                <div className={styles.actionsRow}>
-                    <button onClick={() => {
-                        window.location.href = '/api/backup/db';
-                        toast.success('Downloading database...');
-                    }} className={styles.btnSecondary}>
-                        <Download size={16} /> Download DB
-                    </button>
-                    <button onClick={() => {
-                        setConfigJson(JSON.stringify(config, null, 2));
-                        setActiveModal('config');
-                    }} className={styles.btnPrimary}>
-                        <Code size={16} /> Edit Config
-                    </button>
-                    <button onClick={handleExport} className={styles.btnSecondary}>
-                        <Download size={16} /> Export JSON
-                    </button>
-                    <label className={styles.btnSecondary}>
-                        <Upload size={16} /> Import JSON
-                        <input type="file" hidden onChange={handleImport} accept=".json" />
-                    </label>
-                </div>
-            </section>
+                <main className={styles.content}>
+                    {renderContent()}
+                </main>
+            </div>
 
             {/* Modals */}
             {activeModal === 'add-app' && (

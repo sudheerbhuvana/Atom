@@ -28,8 +28,10 @@ export default function AddServiceModal({ onClose, onSave, category = 'General',
         url: initialData?.url || '',
         description: initialData?.description || '',
         icon: initialData?.icon || '',
-        category: initialData?.category || category
+        category: initialData?.category || category,
+        tags: initialData?.tags || []
     });
+    const [tagsInput, setTagsInput] = useState(initialData?.tags?.join(', ') || '');
     const [iconQuery, setIconQuery] = useState('');
 
     const filteredIcons = iconQuery
@@ -53,6 +55,7 @@ export default function AddServiceModal({ onClose, onSave, category = 'General',
             description: formData.description,
             icon: formData.icon || 'box',
             category: formData.category,
+            tags: tagsInput.split(',').map(t => t.trim()).filter(Boolean),
             createdAt: initialData?.createdAt || Date.now(),
             updatedAt: Date.now()
         };
@@ -60,14 +63,15 @@ export default function AddServiceModal({ onClose, onSave, category = 'General',
         onSave(newService);
 
         if (addNew) {
-            // Reset form but keep category
             setFormData({
                 name: '',
                 url: '',
                 description: '',
                 icon: '',
-                category
+                category,
+                tags: []
             });
+            setTagsInput('');
             setIconQuery('');
         } else {
             onClose();
@@ -112,6 +116,16 @@ export default function AddServiceModal({ onClose, onSave, category = 'General',
                             onChange={e => setFormData({ ...formData, description: e.target.value })}
                         />
                         <span className={styles.hint}>Optional description of the application.</span>
+                    </div>
+
+                    <div className={styles.field}>
+                        <label>Tags (Optional)</label>
+                        <input
+                            placeholder="admin, dev, finance"
+                            value={tagsInput}
+                            onChange={e => setTagsInput(e.target.value)}
+                        />
+                        <span className={styles.hint}>Comma-sparated tags for access control</span>
                     </div>
 
                     <div className={styles.field}>

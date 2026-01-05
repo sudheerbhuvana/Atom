@@ -5,7 +5,7 @@ import { registerSchema } from '@/lib/validation';
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        
+
         // Validate request body
         const validationResult = registerSchema.safeParse(body);
         if (!validationResult.success) {
@@ -15,8 +15,8 @@ export async function POST(request: Request) {
             );
         }
 
-        const { username, password } = validationResult.data;
-        const result = await register(username, password);
+        const { username, password, email } = validationResult.data;
+        const result = await register(username, password, email);
 
         if (!result.success) {
             return NextResponse.json({ error: result.error }, { status: 400 });

@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 
 // Routes that don't require authentication
 // Note: /api/config GET is public for initial setup, but POST requires auth (checked in route)
-const publicRoutes = ['/login', '/onboard', '/api/auth', '/api/config'];
+const publicRoutes = ['/login', '/onboard', '/api/auth', '/api/config', '/api/oauth', '/.well-known'];
 
 // Named export 'proxy' for Next.js 16
 export function proxy(request: NextRequest) {

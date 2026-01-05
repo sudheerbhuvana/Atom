@@ -64,6 +64,70 @@ try {
 
     const schema = fs.readFileSync(schemaPath, 'utf8');
     db.exec(schema);
+
+    // Auto-migration: Check for new columns in existing tables
+    try {
+        const userColumns = db.prepare('PRAGMA table_info(users)').all() as { name: string }[];
+
+        // Add 'tags' column if missing
+        if (!userColumns.some(c => c.name === 'tags')) {
+            console.log('Migrating database: Adding tags column to users table...');
+            db.prepare('ALTER TABLE users ADD COLUMN tags TEXT').run();
+        }
+
+        // Add 'email' column if missing (legacy support)
+        if (!userColumns.some(c => c.name === 'email')) {
+            console.log('Migrating database: Adding email column to users table...');
+            db.prepare('ALTER TABLE users ADD COLUMN email TEXT').run();
+        }
+
+    } catch (migErr) {
+        console.error('Auto-migration error:', migErr);
+    }
+
+    // Also load OAuth2 schema
+    const oauthPossiblePaths = [
+        path.join(process.cwd(), 'src', 'lib', 'schema_oauth.sql'),
+        path.join(process.cwd(), 'schema_oauth.sql'),
+        path.join(__dirname, 'schema_oauth.sql'),
+    ];
+
+    let oauthSchemaPath: string | null = null;
+    for (const testPath of oauthPossiblePaths) {
+        if (fs.existsSync(testPath)) {
+            oauthSchemaPath = testPath;
+            break;
+        }
+    }
+
+    if (oauthSchemaPath) {
+        const oauthSchema = fs.readFileSync(oauthSchemaPath, 'utf8');
+        db.exec(oauthSchema);
+    } else {
+        console.warn('OAuth2 schema file not found - OAuth features will not be available');
+    }
+
+    // Load Federated Auth schema
+    const federatedPossiblePaths = [
+        path.join(process.cwd(), 'src', 'lib', 'schema_federated.sql'),
+        path.join(process.cwd(), 'schema_federated.sql'),
+        path.join(__dirname, 'schema_federated.sql'),
+    ];
+
+    let federatedSchemaPath: string | null = null;
+    for (const testPath of federatedPossiblePaths) {
+        if (fs.existsSync(testPath)) {
+            federatedSchemaPath = testPath;
+            break;
+        }
+    }
+
+    if (federatedSchemaPath) {
+        const fedSchema = fs.readFileSync(federatedSchemaPath, 'utf8');
+        db.exec(fedSchema);
+    } else {
+        console.warn('Federated Auth schema file not found');
+    }
 } catch (error) {
     console.error('Failed to initialize database schema:', error);
     // Re-throw in production to fail fast, but allow dev to continue
@@ -76,6 +140,8 @@ export interface User {
     id: number;
     username: string;
     password_hash: string;
+    email?: string;
+    tags?: string[];
     created_at: string;
 }
 
@@ -86,19 +152,31 @@ export interface Session {
     created_at: string;
 }
 
+// Helper to parse user tags
+function parseUser(user: any): User | undefined {
+    if (!user) return undefined;
+    return {
+        ...user,
+        tags: user.tags ? user.tags.split(',') : []
+    };
+}
+
 // User operations
 export function getUserByUsername(username: string): User | undefined {
-    return getStmt('SELECT * FROM users WHERE username = ?').get(username) as User | undefined;
+    const user = getStmt('SELECT * FROM users WHERE username = ?').get(username);
+    return parseUser(user);
 }
 
 export function getUserById(id: number): User | undefined {
-    return getStmt('SELECT * FROM users WHERE id = ?').get(id) as User | undefined;
+    const user = getStmt('SELECT * FROM users WHERE id = ?').get(id);
+    return parseUser(user);
 }
 
-export function createUser(username: string, passwordHash: string): User {
+export function createUser(username: string, passwordHash: string, email?: string, tags?: string[]): User {
     // Use INSERT OR IGNORE to prevent race conditions
-    const stmt = getStmt('INSERT INTO users (username, password_hash) VALUES (?, ?)');
-    const result = stmt.run(username, passwordHash);
+    const tagsStr = tags ? tags.join(',') : null;
+    const stmt = getStmt('INSERT INTO users (username, password_hash, email, tags) VALUES (?, ?, ?, ?)');
+    const result = stmt.run(username, passwordHash, email || null, tagsStr);
 
     // Check if insert was successful (SQLite returns changes > 0)
     if (result.changes === 0) {
@@ -118,12 +196,20 @@ export function updateUserPassword(userId: number, passwordHash: string): void {
 }
 
 export function getAllUsers(): User[] {
-    return getStmt('SELECT id, username, password_hash, created_at FROM users').all() as User[];
+    const users = getStmt('SELECT id, username, password_hash, email, tags, created_at FROM users').all();
+    return users.map((u: any) => ({
+        ...u,
+        tags: u.tags ? u.tags.split(',') : []
+    }));
 }
 
 // Safe version that doesn't return password hashes
 export function getAllUsersSafe(): Omit<User, 'password_hash'>[] {
-    return getStmt('SELECT id, username, created_at FROM users').all() as Omit<User, 'password_hash'>[];
+    const users = getStmt('SELECT id, username, email, tags, created_at FROM users').all();
+    return users.map((u: any) => ({
+        ...u,
+        tags: u.tags ? u.tags.split(',') : []
+    }));
 }
 
 export function deleteUser(id: number): void {
