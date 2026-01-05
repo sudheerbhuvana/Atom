@@ -43,7 +43,7 @@
         "sonner": "^2.0.7",
         "systeminformation": "^5.29.1",
         "tcp-ping": "^0.1.1",
-        "zod": "^4.3.4"
+        "zod": "^4.3.5"
     },
     "devDependencies": {
         "@testing-library/jest-dom": "^6.9.1",
