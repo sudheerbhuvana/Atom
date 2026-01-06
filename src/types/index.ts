@@ -53,7 +53,7 @@ export interface AppConfig {
 
 export interface Widget {
     id: string;
-    type: 'system-monitor' | 'weather' | 'clock' | 'generic' | 'docker'; // Add more types later
+    type: 'system-monitor' | 'weather' | 'clock' | 'generic' | 'docker' | 'custom'; // Add more types later
     title?: string;
     options?: Record<string, unknown>;
 }

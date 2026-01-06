@@ -33,6 +33,11 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
         (initialData?.options?.fields as FieldConfig[]) || [{ label: '', path: '' }]
     );
 
+    const [template, setTemplate] = useState(initialData?.options?.template as string || '');
+    const [stylesValue, setStylesValue] = useState(initialData?.options?.styles as string || '');
+    const [testData, setTestData] = useState<string | null>(null);
+    const [testingEndpoint, setTestingEndpoint] = useState(false);
+
     // Initialize raw JSON when entering mode - intentionally triggered by isJsonMode only
     useEffect(() => {
         if (isJsonMode) {
@@ -40,7 +45,8 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
                 id: initialData?.id || 'widget-' + Date.now(),
                 type,
                 title,
-                options: type === 'generic' ? { endpoint, fields: fields.filter(f => f.label && f.path) } : {}
+                options: type === 'generic' ? { endpoint, fields: fields.filter(f => f.label && f.path) } :
+                    type === 'custom' ? { endpoint, template, styles: stylesValue } : {}
             };
             setRawJson(JSON.stringify(currentData, null, 2));
             setJsonError('');
@@ -58,6 +64,10 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
                 if (parsed.type === 'generic' && parsed.options) {
                     setEndpoint(parsed.options.endpoint || '');
                     setFields(parsed.options.fields || [{ label: '', path: '' }]);
+                } else if (parsed.type === 'custom' && parsed.options) {
+                    setEndpoint(parsed.options.endpoint || '');
+                    setTemplate(parsed.options.template || '');
+                    setStylesValue(parsed.options.styles || '');
                 }
                 setIsJsonMode(false);
             } catch {
@@ -104,6 +114,35 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
         // @ts-expect-error Dynamic field assignment
         newFields[index][key] = value;
         setFields(newFields);
+    };
+
+    const handleTestEndpoint = async () => {
+        if (!endpoint) {
+            toast.error('Please enter an endpoint first');
+            return;
+        }
+
+        setTestingEndpoint(true);
+        setTestData(null);
+
+        try {
+            const proxyUrl = `/api/proxy?url=${encodeURIComponent(endpoint)}`;
+            const res = await fetch(proxyUrl);
+            const data = await res.json();
+
+            if (!res.ok) {
+                setTestData(`Error: ${data.error || res.statusText}`);
+                toast.error('Test failed');
+            } else {
+                setTestData(JSON.stringify(data, null, 2));
+                toast.success('Data fetched successfully');
+            }
+        } catch (e) {
+            setTestData(`Error: ${e instanceof Error ? e.message : 'Unknown error'}`);
+            toast.error('Test passed with errors');
+        } finally {
+            setTestingEndpoint(false);
+        }
     };
 
     const handleSubmit = () => {
@@ -153,6 +192,20 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
                     endpoint,
                     fields: validFields
                 };
+            } else if (type === 'custom') {
+                if (!endpoint) {
+                    toast.error('Endpoint is required');
+                    return;
+                }
+                if (!template) {
+                    toast.error('Template HTML is required');
+                    return;
+                }
+                newWidget.options = {
+                    endpoint,
+                    template,
+                    styles: stylesValue
+                };
             }
             finalWidget = newWidget;
         }
@@ -164,6 +217,7 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
     return (
         <div className={styles.overlay}>
             <div className={styles.modal}>
+                {/* ... Header ... */}
                 <div className={styles.header}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <h2>{initialData ? 'Edit' : 'Add'} Widget</h2>
@@ -199,6 +253,7 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
                                     onChange={(e) => setType(e.target.value as Widget['type'])}
                                 >
                                     <option value="generic">Generic (JSON API)</option>
+                                    <option value="custom">Custom (HTML/CSS)</option>
                                     <option value="system-monitor">System Monitor</option>
                                     <option value="docker">Docker Stats</option>
                                     <option value="clock">Clock & Weather</option>
@@ -206,6 +261,7 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
                                 </select>
                             </div>
 
+                            {/* ... Generic Preset ... */}
                             {type === 'generic' && !initialData && (
                                 <div className={styles.field}>
                                     <label>Load Preset (Optional)</label>
@@ -228,65 +284,127 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
                                 />
                             </div>
 
-                            {type === 'generic' && (
-                                <>
-                                    <div className={styles.field}>
-                                        <label>API Endpoint</label>
+                            {/* ... Fields ... */}
+                            {(type === 'generic' || type === 'custom') && (
+                                <div className={styles.field}>
+                                    <label>API Endpoint</label>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
                                         <input
+                                            style={{ flex: 1 }}
                                             placeholder="http://localhost:8989/api/v3/queue?apikey=..."
                                             value={endpoint}
                                             onChange={(e) => setEndpoint(e.target.value)}
                                         />
-                                        <span className={styles.hint}>
-                                            Must return JSON. Include full URL with protocol and keys.
-                                        </span>
+                                        <button
+                                            className={styles.secondaryBtn} // Ensure this class exists in CSS
+                                            onClick={handleTestEndpoint}
+                                            disabled={testingEndpoint || !endpoint}
+                                            style={{ padding: '0 1rem', whiteSpace: 'nowrap' }}
+                                        >
+                                            {testingEndpoint ? 'Testing...' : 'Test API'}
+                                        </button>
                                     </div>
-
-                                    <div className={styles.field}>
-                                        <label>Data Fields</label>
-                                        <div className={styles.fieldList}>
-                                            <div className={styles.fieldHeader}>
-                                                <span>Label</span>
-                                                <span>JSON Path</span>
-                                                <span>Suffix</span>
-                                                <span>Format</span>
-                                                <span></span>
+                                    <span className={styles.hint}>
+                                        Must return JSON. Include full URL with protocol and keys.
+                                    </span>
+                                    {testData && (
+                                        <div style={{ marginTop: '0.5rem', background: '#1e1e1e', padding: '0.5rem', borderRadius: '4px', position: 'relative' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                                                <span style={{ fontSize: '0.75rem', color: '#888' }}>API Response Preview</span>
+                                                <button
+                                                    onClick={() => { setTestData(null); }}
+                                                    style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer' }}
+                                                >
+                                                    <X size={12} />
+                                                </button>
                                             </div>
-                                            {fields.map((field, i) => (
-                                                <div key={i} className={styles.fieldItem}>
-                                                    <input
-                                                        placeholder="Label"
-                                                        value={field.label}
-                                                        onChange={e => handleFieldChange(i, 'label', e.target.value)}
-                                                    />
-                                                    <input
-                                                        placeholder="total_records"
-                                                        value={field.path}
-                                                        onChange={e => handleFieldChange(i, 'path', e.target.value)}
-                                                    />
-                                                    <input
-                                                        placeholder="%"
-                                                        value={field.suffix || ''}
-                                                        onChange={e => handleFieldChange(i, 'suffix', e.target.value)}
-                                                    />
-                                                    <select
-                                                        value={field.format || ''}
-                                                        onChange={e => handleFieldChange(i, 'format', e.target.value)}
-                                                    >
-                                                        <option value="">None</option>
-                                                        <option value="number">Num</option>
-                                                        <option value="bytes">Bytes</option>
-                                                        <option value="percent">%</option>
-                                                    </select>
-                                                    <button onClick={() => handleRemoveField(i)} className={`${styles.iconBtn} ${styles.removeBtn}`}>
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                            <button onClick={handleAddField} className={styles.addBtn}>
-                                                <Plus size={16} /> Add Field
-                                            </button>
+                                            <pre style={{
+                                                maxHeight: '150px',
+                                                overflow: 'auto',
+                                                fontSize: '0.75rem',
+                                                color: '#d4d4d4',
+                                                margin: 0
+                                            }}>
+                                                {testData}
+                                            </pre>
                                         </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {type === 'generic' && (
+                                <div className={styles.field}>
+                                    <label>Data Fields</label>
+                                    <div className={styles.fieldList}>
+                                        <div className={styles.fieldHeader}>
+                                            <span>Label</span>
+                                            <span>JSON Path</span>
+                                            <span>Suffix</span>
+                                            <span>Format</span>
+                                            <span></span>
+                                        </div>
+                                        {fields.map((field, i) => (
+                                            <div key={i} className={styles.fieldItem}>
+                                                <input
+                                                    placeholder="Label"
+                                                    value={field.label}
+                                                    onChange={e => handleFieldChange(i, 'label', e.target.value)}
+                                                />
+                                                <input
+                                                    placeholder="total_records"
+                                                    value={field.path}
+                                                    onChange={e => handleFieldChange(i, 'path', e.target.value)}
+                                                />
+                                                <input
+                                                    placeholder="%"
+                                                    value={field.suffix || ''}
+                                                    onChange={e => handleFieldChange(i, 'suffix', e.target.value)}
+                                                />
+                                                <select
+                                                    value={field.format || ''}
+                                                    onChange={e => handleFieldChange(i, 'format', e.target.value)}
+                                                >
+                                                    <option value="">None</option>
+                                                    <option value="number">Num</option>
+                                                    <option value="bytes">Bytes</option>
+                                                    <option value="percent">%</option>
+                                                    <option value="boolean">Bool (✓/✗)</option>
+                                                </select>
+                                                <button onClick={() => handleRemoveField(i)} className={`${styles.iconBtn} ${styles.removeBtn}`}>
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                        <button onClick={handleAddField} className={styles.addBtn}>
+                                            <Plus size={16} /> Add Field
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {type === 'custom' && (
+                                <>
+                                    <div className={styles.field}>
+                                        <label>HTML Template</label>
+                                        <textarea
+                                            placeholder='<div class="item">
+  <b>{{title}}</b>: {{status}}
+</div>'
+                                            value={template}
+                                            onChange={(e) => setTemplate(e.target.value)}
+                                            style={{ minHeight: '150px', fontFamily: 'monospace' }}
+                                        />
+                                        <span className={styles.hint}>Use {'{{variable}}'} notation. Replaces variables from JSON response.</span>
+                                    </div>
+                                    <div className={styles.field}>
+                                        <label>CSS Styles</label>
+                                        <textarea
+                                            placeholder='.item { color: red; }'
+                                            value={stylesValue}
+                                            onChange={(e) => setStylesValue(e.target.value)}
+                                            style={{ minHeight: '100px', fontFamily: 'monospace' }}
+                                        />
+                                        <span className={styles.hint}>Styles are scoped to this widget.</span>
                                     </div>
                                 </>
                             )}

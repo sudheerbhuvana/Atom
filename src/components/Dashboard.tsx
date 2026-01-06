@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Search, Grid3X3, Grid2X2, List as ListIcon, ChevronRight } from 'lucide-react';
 import ServiceCard from './ui/ServiceCard';
 import SystemStatsWidget from './widgets/SystemStats';
+import CustomWidget from './widgets/CustomWidget';
 import DockerWidget from './widgets/DockerWidget';
 import ShortcutsModal from './modals/ShortcutsModal';
 import ClockWidget from './widgets/ClockWidget';
@@ -209,6 +210,15 @@ export default function Dashboard({ user }: { user?: { username: string; tags?: 
                                         title={widget.title || 'Widget'}
                                         endpoint={(widget.options as { endpoint?: string })?.endpoint || ''}
                                         fields={(widget.options as { fields?: { label: string; path: string; suffix?: string }[] })?.fields || []}
+                                        refreshInterval={(widget.options as { refreshInterval?: number })?.refreshInterval}
+                                    />
+                                )}
+                                {widget.type === 'custom' && (
+                                    <CustomWidget
+                                        title={widget.title || 'Widget'}
+                                        endpoint={(widget.options as { endpoint?: string })?.endpoint || ''}
+                                        template={(widget.options as { template?: string })?.template || ''}
+                                        styles={(widget.options as { styles?: string })?.styles || ''}
                                         refreshInterval={(widget.options as { refreshInterval?: number })?.refreshInterval}
                                     />
                                 )}

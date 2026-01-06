@@ -67,7 +67,7 @@ export const appConfigSchema = z.object({
     }).optional(),
     widgets: z.array(z.object({
         id: z.string(),
-        type: z.enum(['system-monitor', 'weather', 'clock', 'generic', 'docker']),
+        type: z.enum(['system-monitor', 'weather', 'clock', 'generic', 'docker', 'custom']),
         title: z.string().optional(),
         options: z.record(z.string(), z.any()).optional(),
     })).optional(),
