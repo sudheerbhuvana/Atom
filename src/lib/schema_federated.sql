@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS auth_providers (
     token_endpoint TEXT,
     userinfo_endpoint TEXT,
     jwks_uri TEXT,
+    scopes TEXT,
     enabled BOOLEAN DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP

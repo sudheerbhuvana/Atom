@@ -1,30 +1,30 @@
-import { getSAMLCertificate, getPublicCertificate } from './certificates';
+import { getPublicCertificate } from './certificates';
 
 export interface SAMLMetadataConfig {
-    issuer: string; // Entity ID of IdP
-    ssoServiceUrl: string; // SSO endpoint URL
-    certificate: string; // Public certificate for signature verification
+  issuer: string; // Entity ID of IdP
+  ssoServiceUrl: string; // SSO endpoint URL
+  certificate: string; // Public certificate for signature verification
 }
 
 /**
  * Generate SAML 2.0 IdP Metadata (EntityDescriptor)
  */
 export function generateSAMLMetadata(baseUrl?: string): string {
-    const issuer = baseUrl || process.env.OAUTH_ISSUER_URL || 'http://localhost:3000';
-    const entityId = `${issuer}/saml/metadata`;
-    const ssoServiceUrl = `${issuer}/api/saml/sso`;
+  const issuer = baseUrl || process.env.OAUTH_ISSUER_URL || 'http://localhost:3000';
+  const entityId = `${issuer}/saml/metadata`;
+  const ssoServiceUrl = `${issuer}/api/saml/sso`;
 
-    // Get public certificate (without private key)
-    const cert = getPublicCertificate();
+  // Get public certificate (without private key)
+  const cert = getPublicCertificate();
 
-    // Extract certificate content (remove headers and format)
-    const certContent = cert
-        .replace(/-----BEGIN CERTIFICATE-----/, '')
-        .replace(/-----END CERTIFICATE-----/, '')
-        .replace(/\n/g, '');
+  // Extract certificate content (remove headers and format)
+  const certContent = cert
+    .replace(/-----BEGIN CERTIFICATE-----/, '')
+    .replace(/-----END CERTIFICATE-----/, '')
+    .replace(/\n/g, '');
 
-    // Build SAML Metadata XML
-    const metadata = `<?xml version="1.0" encoding="UTF-8"?>
+  // Build SAML Metadata XML
+  const metadata = `<?xml version="1.0" encoding="UTF-8"?>
 <md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" 
                      xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
                      entityID="${entityId}">
@@ -72,18 +72,18 @@ export function generateSAMLMetadata(baseUrl?: string): string {
   </md:IDPSSODescriptor>
 </md:EntityDescriptor>`;
 
-    return metadata;
+  return metadata;
 }
 
 /**
  * Get SAML metadata configuration (for programmatic access)
  */
 export function getSAMLMetadataConfig(baseUrl?: string): SAMLMetadataConfig {
-    const issuer = baseUrl || process.env.OAUTH_ISSUER_URL || 'http://localhost:3000';
+  const issuer = baseUrl || process.env.OAUTH_ISSUER_URL || 'http://localhost:3000';
 
-    return {
-        issuer: `${issuer}/saml/metadata`,
-        ssoServiceUrl: `${issuer}/api/saml/sso`,
-        certificate: getPublicCertificate(),
-    };
+  return {
+    issuer: `${issuer}/saml/metadata`,
+    ssoServiceUrl: `${issuer}/api/saml/sso`,
+    certificate: getPublicCertificate(),
+  };
 }

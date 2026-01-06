@@ -6,6 +6,21 @@ export interface OIDCProviderMetadata {
     jwks_uri: string;
 }
 
+const KNOWN_PROVIDERS: Record<string, Partial<OIDCProviderMetadata>> = {
+    'github.com': {
+        authorization_endpoint: 'https://github.com/login/oauth/authorize',
+        token_endpoint: 'https://github.com/login/oauth/access_token',
+        userinfo_endpoint: 'https://api.github.com/user',
+        jwks_uri: '', // GitHub doesn't have standard JWKS for OIDC
+    },
+    'www.github.com': {
+        authorization_endpoint: 'https://github.com/login/oauth/authorize',
+        token_endpoint: 'https://github.com/login/oauth/access_token',
+        userinfo_endpoint: 'https://api.github.com/user',
+        jwks_uri: '',
+    }
+};
+
 export async function fetchOIDCConfiguration(issuer: string): Promise<OIDCProviderMetadata> {
     // Ensure issuer has no trailing slash for the suffix append, but standard says base + /.well-known
     const baseUrl = issuer.replace(/\/$/, '');
@@ -31,6 +46,20 @@ export async function fetchOIDCConfiguration(issuer: string): Promise<OIDCProvid
             jwks_uri: data.jwks_uri
         };
     } catch (error) {
+        // Fallback for known non-OIDC providers
+        try {
+            const domain = new URL(issuer).hostname;
+            // Remove 'www.' if present for key lookup, or check both
+            if (KNOWN_PROVIDERS[domain]) {
+                return {
+                    issuer: issuer,
+                    ...KNOWN_PROVIDERS[domain]
+                } as OIDCProviderMetadata;
+            }
+        } catch (e) {
+            // Invalid URL passed
+        }
+
         console.error(`OIDC Discovery failed for ${issuer}:`, error);
         throw error;
     }

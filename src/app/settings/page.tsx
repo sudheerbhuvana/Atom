@@ -7,18 +7,18 @@ import { toast } from 'sonner';
 import { Service, Link as AppLink, Widget } from '@/types';
 import { useTheme } from '@/context/ThemeContext';
 import AddServiceModal from '@/components/modals/AddServiceModal';
-import EditServiceModal from '@/components/modals/EditServiceModal';
 import AddWidgetModal from '@/components/modals/AddWidgetModal';
-import EditWidgetModal from '@/components/modals/EditWidgetModal';
 import UserManagement from '@/components/ui/UserManagement';
 import ClientManager from '@/components/oauth/ClientManager';
 import AuthProviderManager from '@/components/oauth/AuthProviderManager';
+import EditableTable from '@/components/settings/EditableTable';
+import WidgetTable from '@/components/settings/WidgetTable';
 import { useConfig } from '@/context/ConfigContext';
 import styles from './page.module.css';
 
 export default function SettingsPage() {
     const { theme, toggleTheme } = useTheme();
-    const { config, updateConfig, loading } = useConfig();
+    const { config, updateConfig, loading: contextLoading } = useConfig();
     const [activeModal, setActiveModal] = useState<'add-app' | 'edit-app' | 'add-link' | 'edit-link' | 'config' | 'add-widget' | 'edit-widget' | null>(null);
     const [configJson, setConfigJson] = useState('');
     const [editingItem, setEditingItem] = useState<Service | null>(null);
@@ -27,12 +27,48 @@ export default function SettingsPage() {
     const [localLocation, setLocalLocation] = useState('');
     const [activeSection, setActiveSection] = useState('general');
 
+    // Role protection
+    const [loading, setLoading] = useState(true);
+    const [userRole, setUserRole] = useState<'admin' | 'member' | null>(null);
+
     useEffect(() => {
         if (config) {
             setLocalTitle(config.title || '');
             setLocalLocation(config.weather?.location || '');
         }
     }, [config]);
+
+    useEffect(() => {
+        // Check current user role
+        fetch('/api/auth/session')
+            .then(res => res.json())
+            .then(data => {
+                if (data.user) {
+                    setUserRole(data.user.role || 'member');
+                }
+                setLoading(false);
+            })
+            .catch(err => {
+                console.error(err);
+                setLoading(false);
+            });
+    }, []);
+
+    if (loading || contextLoading) return <div className={styles.loading}>Loading...</div>;
+
+    if (userRole !== 'admin') {
+        return (
+            <div className={styles.container}>
+                <div style={{ textAlign: 'center', marginTop: '4rem' }}>
+                    <h1>Access Denied</h1>
+                    <p>You do not have permission to view this page.</p>
+                    <button className={styles.btnPrimary} onClick={() => window.location.href = '/'}>
+                        Go to Dashboard
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     const updateLayout = (key: string, value: string | number | boolean) => {
         if (!config) return;
@@ -163,8 +199,11 @@ export default function SettingsPage() {
         reader.readAsText(file);
     };
 
+
+
     const renderContent = () => {
         switch (activeSection) {
+            // ... (case general stays same)
             case 'general':
                 return (
                     <section className={styles.section}>
@@ -262,7 +301,15 @@ export default function SettingsPage() {
             case 'applications':
                 return (
                     <section className={styles.section}>
-                        <h2 className={styles.sectionTitle}>Applications</h2>
+                        <div className={styles.sectionHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <div>
+                                <h2 className={styles.sectionTitle}>Applications</h2>
+                                <p className={styles.sectionDesc} style={{ marginBottom: 0 }}>Manage your dashboard applications.</p>
+                            </div>
+                            <button className={styles.btnPrimary} onClick={() => { setEditingItem(null); setActiveModal('add-app'); }}>
+                                <Plus size={16} /> Add Application
+                            </button>
+                        </div>
 
                         <div className={styles.controlRow}>
                             <label>Display Full Size Buttons</label>
@@ -274,62 +321,68 @@ export default function SettingsPage() {
                             </div>
                         </div>
 
-                        <div className={styles.actionsRow}>
-                            <button className={styles.btnPrimary} onClick={() => { setEditingItem(null); setActiveModal('add-app'); }}>
-                                <Plus size={16} /> Add Application
-                            </button>
-                            <button className={styles.btnSecondary} onClick={() => setActiveModal('edit-app')}>
-                                <Edit3 size={16} /> Edit Applications
-                            </button>
-                            <button className={styles.btnDanger} onClick={handleDeleteAllServices}>
-                                <Trash2 size={16} /> Delete All Applications
-                            </button>
-                        </div>
+                        <EditableTable
+                            title="Applications"
+                            items={config?.services || []}
+                            onDelete={handleDeleteServices}
+                            onEdit={(service) => {
+                                setEditingItem(service);
+                                setActiveModal('add-app');
+                            }}
+                        />
                     </section>
                 );
             case 'bookmarks':
                 return (
                     <section className={styles.section}>
-                        <h2 className={styles.sectionTitle}>Bookmarks</h2>
-                        <div className={styles.actionsRow}>
+                        <div className={styles.sectionHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <div>
+                                <h2 className={styles.sectionTitle}>Bookmarks</h2>
+                                <p className={styles.sectionDesc} style={{ marginBottom: 0 }}>Manage your quick access bookmarks.</p>
+                            </div>
                             <button className={styles.btnPrimary} onClick={() => { setEditingItem(null); setActiveModal('add-link'); }}>
                                 <Plus size={16} /> Add Bookmark
                             </button>
-                            <button className={styles.btnSecondary} onClick={() => setActiveModal('edit-link')}>
-                                <Edit3 size={16} /> Edit Bookmarks
-                            </button>
-                            <button className={styles.btnDanger} onClick={handleDeleteAllLinks}>
-                                <Trash2 size={16} /> Delete All Bookmarks
-                            </button>
                         </div>
+
+                        <EditableTable
+                            title="Bookmarks"
+                            items={(config?.links || []).map(linkToService)}
+                            onDelete={handleDeleteLinks}
+                            onEdit={(service) => {
+                                setEditingItem(service);
+                                setActiveModal('add-link');
+                            }}
+                        />
                     </section>
                 );
             case 'widgets':
                 return (
                     <section className={styles.section}>
-                        <h2 className={styles.sectionTitle}>Widgets</h2>
-                        <div className={styles.actionsRow}>
+                        <div className={styles.sectionHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <div>
+                                <h2 className={styles.sectionTitle}>Widgets</h2>
+                                <p className={styles.sectionDesc} style={{ marginBottom: 0 }}>Manage information widgets.</p>
+                            </div>
                             <button className={styles.btnPrimary} onClick={() => { setEditingItem(null); setActiveModal('add-widget'); }}>
                                 <Plus size={16} /> Add Widget
                             </button>
-                            <button className={styles.btnSecondary} onClick={() => setActiveModal('edit-widget')}>
-                                <Edit3 size={16} /> Edit Widgets
-                            </button>
-                            <button className={styles.btnDanger}
-                                onClick={() => {
-                                    if (!config) return;
-                                    toast('Delete ALL widgets?', {
-                                        action: {
-                                            label: 'Delete',
-                                            onClick: () => updateConfig({ ...config, widgets: [] })
-                                        },
-                                        cancel: { label: 'Cancel', onClick: () => { } }
-                                    });
-                                }}
-                            >
-                                <Trash2 size={16} /> Delete All Widgets
-                            </button>
                         </div>
+
+                        <WidgetTable
+                            widgets={config?.widgets || []}
+                            onDelete={(ids) => {
+                                if (!config) return;
+                                updateConfig({
+                                    ...config,
+                                    widgets: config.widgets?.filter(w => !ids.includes(w.id))
+                                });
+                            }}
+                            onEdit={(widget) => {
+                                setEditingWidget(widget);
+                                setActiveModal('add-widget');
+                            }}
+                        />
                     </section>
                 );
             case 'users':
@@ -376,6 +429,17 @@ export default function SettingsPage() {
                         <p className={styles.sectionDesc}>
                             Allow users to sign in to Atom using external services like Google, Authentik, or GitHub.
                         </p>
+
+                        <div className={styles.infoBox}>
+                            <h4>Callback URL / Redirect URI</h4>
+                            <p>When configuring your identity provider, set the <strong>Callback URL</strong> to:</p>
+                            <code style={{ display: 'block', padding: '0.5rem', background: 'var(--bg-secondary)', borderRadius: '4px', margin: '0.5rem 0', wordBreak: 'break-all' }}>
+                                {typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/api/auth/<strong>[slug]</strong>/callback
+                            </code>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                Replace <code>[slug]</code> with the identifier you enter below (e.g., <code>authentik</code>).
+                            </p>
+                        </div>
                         <div style={{ padding: '0 0.5rem' }}>
                             <AuthProviderManager />
                         </div>
@@ -511,49 +575,6 @@ export default function SettingsPage() {
 
                         updateConfig({ ...config, widgets: updatedWidgets });
                         toast.success(exists ? 'Widget updated' : 'Widget added');
-                    }}
-                />
-            )}
-            {activeModal === 'edit-app' && (
-                <EditServiceModal
-                    title="Applications"
-                    services={config.services}
-                    onClose={() => setActiveModal(null)}
-                    onDelete={handleDeleteServices}
-                    onEdit={(service) => {
-                        setEditingItem(service);
-                        // Close edit modal, open add (edit) modal
-                        setActiveModal('add-app');
-                    }}
-                />
-            )}
-            {activeModal === 'edit-link' && (
-                <EditServiceModal
-                    title="Bookmarks"
-                    services={config.links.map(linkToService)}
-                    onClose={() => setActiveModal(null)}
-                    onDelete={handleDeleteLinks}
-                    onEdit={(service) => {
-                        setEditingItem(service);
-                        setActiveModal('add-link');
-                    }}
-                />
-            )}
-            {activeModal === 'edit-widget' && (
-                <EditWidgetModal
-                    widgets={config.widgets || []}
-                    onClose={() => setActiveModal(null)}
-                    onDelete={(ids) => {
-                        if (!config) return;
-                        updateConfig({
-                            ...config,
-                            widgets: config.widgets?.filter(w => !ids.includes(w.id))
-                        });
-                        setActiveModal(null);
-                    }}
-                    onEdit={(widget) => {
-                        setEditingWidget(widget);
-                        setActiveModal('add-widget');
                     }}
                 />
             )}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { User, Lock, Trash2, Plus, X } from 'lucide-react';
+import { User, Edit3, Trash2, Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
 import styles from './UserManagement.module.css';
 
@@ -10,6 +10,7 @@ interface UserData {
     username: string;
     email?: string;
     tags?: string[];
+    role?: 'admin' | 'member';
     created_at: string;
 }
 
@@ -24,6 +25,7 @@ export default function UserManagement() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [email, setEmail] = useState('');
+    const [role, setRole] = useState<'admin' | 'member'>('member');
     const [tags, setTags] = useState('');
     const [error, setError] = useState('');
 
@@ -46,8 +48,8 @@ export default function UserManagement() {
     };
 
     const handleAddUser = async () => {
-        if (!username || !password || !email) {
-            setError('All fields required');
+        if (!username || !password) {
+            setError('Username and Password are required');
             return;
         }
         if (password.length < 8) {
@@ -63,7 +65,8 @@ export default function UserManagement() {
                     username,
                     password,
                     email,
-                    tags: tags.split(',').map(t => t.trim()).filter(Boolean)
+                    tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+                    role
                 })
             });
 
@@ -108,17 +111,26 @@ export default function UserManagement() {
     };
 
     const handleChangePassword = async () => {
-        if (!selectedUser || !password) return;
-        if (password.length < 8) {
+        if (!selectedUser) return;
+
+        // If password is provided, validation check
+        if (password && password.length < 8) {
             setError('Password must be at least 8 characters');
             return;
         }
 
         try {
+            const body: any = {
+                id: selectedUser.id,
+                role,
+                tags: tags.split(',').map(t => t.trim()).filter(Boolean)
+            };
+            if (password) body.password = password;
+
             const res = await fetch('/api/users', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: selectedUser.id, password })
+                body: JSON.stringify(body)
             });
 
             if (!res.ok) {
@@ -126,9 +138,16 @@ export default function UserManagement() {
                 throw new Error(data.error);
             }
 
+            // Update local state
+            setUsers(users.map(u => u.id === selectedUser.id ? {
+                ...u,
+                role,
+                tags: body.tags
+            } : u));
+
             setShowPassModal(false);
             resetForm();
-            toast.success('Password updated successfully');
+            toast.success('User updated successfully');
         } catch (e: unknown) {
             const msg = e instanceof Error ? e.message : 'An error occurred';
             setError(msg);
@@ -141,6 +160,7 @@ export default function UserManagement() {
         setPassword('');
         setEmail('');
         setTags('');
+        setRole('member');
         setError('');
         setSelectedUser(null);
     };
@@ -153,23 +173,41 @@ export default function UserManagement() {
                 {users.map(u => (
                     <div key={u.id} className={styles.userRow}>
                         <div className={styles.userInfo}>
-                            <User size={20} className={styles.userIcon} />
-                            <span>{u.username}</span>
-                            {u.email && <span className={styles.email}>({u.email})</span>}
-                            {u.tags && u.tags.length > 0 && (
-                                <span className={styles.tags}>
-                                    {u.tags.map(t => <span key={t} className={styles.tag}>{t}</span>)}
-                                </span>
-                            )}
-                            <span className={styles.date}>Member since {new Date(u.created_at).toLocaleDateString()}</span>
+                            <div className={styles.avatarPlaceholder}>
+                                <User size={20} className={styles.userIcon} />
+                            </div>
+                            <div className={styles.userDetails}>
+                                <div className={styles.userHeader}>
+                                    <span className={styles.username}>{u.username}</span>
+                                    <span className={u.role === 'admin' ? styles.adminBadge : styles.roleBadge}>
+                                        {u.role || 'member'}
+                                    </span>
+                                    {u.tags && u.tags.length > 0 && (
+                                        <div className={styles.tags}>
+                                            {u.tags.map(t => <span key={t} className={styles.tag}>{t}</span>)}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className={styles.userMeta}>
+                                    <span className={styles.email}>{u.email || 'No email'}</span>
+                                    <span className={styles.dot}>•</span>
+                                    <span className={styles.date}>Member since {new Date(u.created_at).toLocaleDateString()}</span>
+                                </div>
+                            </div>
                         </div>
                         <div className={styles.actions}>
                             <button
                                 className={styles.actionBtn}
-                                onClick={() => { setSelectedUser(u); setShowPassModal(true); setError(''); }}
-                                title="Change Password"
+                                onClick={() => {
+                                    setSelectedUser(u);
+                                    setRole((u.role as 'admin' | 'member') || 'member');
+                                    setTags(u.tags?.join(', ') || '');
+                                    setShowPassModal(true);
+                                    setError('');
+                                }}
+                                title="Edit User"
                             >
-                                <Lock size={16} />
+                                <Edit3 size={16} />
                             </button>
                             <button
                                 className={styles.deleteBtn}
@@ -192,7 +230,7 @@ export default function UserManagement() {
                 <div className={styles.overlay}>
                     <div className={styles.modal}>
                         <div className={styles.header}>
-                            <h3>{showAddModal ? 'Add New User' : `Change Password for ${selectedUser?.username}`}</h3>
+                            <h3>{showAddModal ? 'Add New User' : `Edit ${selectedUser?.username}`}</h3>
                             <button onClick={() => { setShowAddModal(false); setShowPassModal(false); }} className={styles.closeBtn}>
                                 <X size={20} />
                             </button>
@@ -219,24 +257,38 @@ export default function UserManagement() {
                                             placeholder="user@example.com"
                                         />
                                     </div>
-                                    <div className={styles.field}>
-                                        <label>Tags (Optional)</label>
-                                        <input
-                                            value={tags}
-                                            onChange={e => setTags(e.target.value)}
-                                            placeholder="admin, dev, finance"
-                                        />
-                                        <span className={styles.hint}>Comma-sparated tags for access control</span>
-                                    </div>
                                 </>
                             )}
+
                             <div className={styles.field}>
-                                <label>Password (min 8 chars)</label>
+                                <label>Role</label>
+                                <select
+                                    value={role}
+                                    onChange={(e) => setRole(e.target.value as 'admin' | 'member')}
+                                    className={styles.select}
+                                >
+                                    <option value="member">Member</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+
+                            <div className={styles.field}>
+                                <label>Tags (Optional)</label>
+                                <input
+                                    value={tags}
+                                    onChange={e => setTags(e.target.value)}
+                                    placeholder="admin, dev, finance"
+                                />
+                                <span className={styles.hint}>Comma-sparated tags for access control</span>
+                            </div>
+
+                            <div className={styles.field}>
+                                <label>Password {showAddModal ? '(min 8 chars)' : '(Leave blank to keep current)'}</label>
                                 <input
                                     type="password"
                                     value={password}
                                     onChange={e => setPassword(e.target.value)}
-                                    placeholder="New Password"
+                                    placeholder={showAddModal ? "New Password" : "New Password (Optional)"}
                                 />
                             </div>
                             {error && <div className={styles.error}>{error}</div>}
@@ -248,7 +300,7 @@ export default function UserManagement() {
                                 className={styles.saveBtn}
                                 onClick={showAddModal ? handleAddUser : handleChangePassword}
                             >
-                                {showAddModal ? 'Create User' : 'Update Password'}
+                                {showAddModal ? 'Create User' : 'Save Changes'}
                             </button>
                         </div>
                     </div>

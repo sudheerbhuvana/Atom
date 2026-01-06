@@ -87,13 +87,16 @@ export const registerSchema = z.object({
 
 export const changePasswordSchema = z.object({
     id: z.number().int().positive(),
-    password: passwordSchema,
+    password: passwordSchema.optional(),
+    role: z.enum(['admin', 'member']).optional(),
+    tags: z.array(z.string()).optional()
 });
 
 export const createUserSchema = z.object({
     username: usernameSchema,
-    email: z.string().email('Invalid email address').optional(),
+    email: z.string().email('Invalid email address').optional().or(z.literal('')),
     tags: z.array(z.string()).optional(),
     password: passwordSchema,
+    role: z.enum(['admin', 'member']).optional().default('member')
 });
 

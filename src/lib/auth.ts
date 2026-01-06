@@ -71,6 +71,7 @@ export async function getCurrentUser() {
         username: session.user.username,
         email: session.user.email,
         tags: session.user.tags || [],
+        role: session.user.role || 'member',
     };
 }
 

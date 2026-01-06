@@ -1,73 +1,110 @@
 .container {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: 1.5rem;
+    padding: 1rem;
+    max-width: 800px;
+    margin: 0 auto;
 }
 
 .list {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
     margin-bottom: 1.5rem;
 }
 
 .userRow {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--bg-secondary);
-    padding: 1rem;
-    border-radius: var(--radius-sm);
-    border: 1px solid transparent;
+    transition: all 0.2s;
 }
 
 .userRow:hover {
-    border-color: var(--border-color);
+    border-color: var(--accent-secondary);
+    background: var(--bg-tertiary);
 }
 
 .userInfo {
     display: flex;
     align-items: center;
     gap: 1rem;
+}
+
+.avatarPlaceholder {
+    width: 40px;
+    height: 40px;
+    background: var(--bg-tertiary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+}
+
+.userDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.userHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.username {
+    font-weight: 600;
     color: var(--text-primary);
+    font-size: 1.05rem;
+}
+
+.adminBadge {
+    background: rgba(255, 68, 68, 0.15);
+    color: #ff4444;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 12px;
     font-weight: 500;
+    text-transform: capitalize;
 }
 
-.userIcon {
-    color: var(--text-muted);
-}
-
-.date {
-    font-size: 0.8rem;
+.roleBadge {
+    background: var(--bg-tertiary);
     color: var(--text-secondary);
-    color: var(--text-secondary);
-    font-weight: 400;
-}
-
-.email {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    margin-right: 0.5rem;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+    text-transform: capitalize;
 }
 
 .tags {
     display: flex;
-    gap: 0.3rem;
-    margin-right: auto;
+    gap: 0.5rem;
 }
 
 .tag {
+    background: rgba(var(--accent-rgb), 0.1);
+    color: var(--accent-color);
     font-size: 0.75rem;
-    background: var(--bg-hover);
-    padding: 0.1rem 0.4rem;
+    padding: 2px 8px;
     border-radius: 4px;
-    color: var(--text-secondary);
 }
 
-.hint {
-    font-size: 0.75rem;
+.userMeta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
     color: var(--text-muted);
+}
+
+.dot {
+    opacity: 0.5;
 }
 
 .actions {
@@ -77,102 +114,98 @@
 
 .actionBtn,
 .deleteBtn {
-    background: var(--bg-hover);
-    border: none;
-    padding: 0.5rem;
-    border-radius: 4px;
-    color: var(--text-secondary);
-    cursor: pointer;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
     transition: all 0.2s;
+    background: transparent;
+    color: var(--text-secondary);
 }
 
 .actionBtn:hover {
+    background: var(--bg-primary);
     color: var(--text-primary);
-    background: var(--bg-secondary);
 }
 
 .deleteBtn:hover {
-    color: #ef4444;
-    background: rgba(239, 68, 68, 0.1);
+    background: rgba(255, 68, 68, 0.1);
+    color: #ff4444;
 }
 
 .addBtn {
-    width: 100%;
-    padding: 1rem;
-    background: transparent;
-    border: 1px dashed var(--border-color);
-    border-radius: var(--radius-sm);
-    color: var(--text-secondary);
-    cursor: pointer;
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 0.5rem;
-    transition: all 0.2s;
+    padding: 0.75rem 1.5rem;
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    margin: 0 auto;
+    transition: opacity 0.2s;
 }
 
 .addBtn:hover {
-    border-color: var(--text-secondary);
-    color: var(--text-primary);
-    background: var(--bg-hover);
+    opacity: 0.9;
 }
 
-/* Modal Styles Reuse or Custom */
+/* Modal */
 .overlay {
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
+    width: 100vw;
+    height: 100vh;
     background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
 }
 
 .modal {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
     width: 100%;
-    max-width: 400px;
+    max-width: 450px;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
     overflow: hidden;
 }
 
 .header {
-    padding: 1rem 1.5rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--border-color);
 }
 
 .header h3 {
     margin: 0;
-    color: var(--text-primary);
     font-size: 1.1rem;
 }
 
 .closeBtn {
-    background: none;
+    background: transparent;
     border: none;
     color: var(--text-muted);
     cursor: pointer;
-}
-
-.closeBtn:hover {
-    color: var(--text-primary);
 }
 
 .body {
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.25rem;
 }
 
 .field {
@@ -184,56 +217,61 @@
 .field label {
     font-size: 0.85rem;
     color: var(--text-secondary);
+    font-weight: 500;
 }
 
-.field input {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+.field input,
+.select {
     padding: 0.75rem;
-    border-radius: 4px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
     color: var(--text-primary);
-    outline: none;
+    font-size: 0.95rem;
 }
 
-.field input:focus {
+.field input:focus,
+.select:focus {
+    outline: none;
     border-color: var(--accent-color);
 }
 
+.hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
 .error {
-    color: #ef4444;
-    font-size: 0.85rem;
-    background: rgba(239, 68, 68, 0.1);
+    color: #ff4444;
+    font-size: 0.9rem;
     padding: 0.5rem;
-    border-radius: 4px;
+    background: rgba(255, 68, 68, 0.1);
+    border-radius: 6px;
 }
 
 .footer {
     padding: 1rem 1.5rem;
-    background: var(--bg-secondary);
+    background: var(--bg-tertiary);
     border-top: 1px solid var(--border-color);
     display: flex;
     justify-content: flex-end;
-    gap: 1rem;
+    gap: 0.75rem;
 }
 
 .cancelBtn {
+    padding: 0.6rem 1rem;
     background: transparent;
-    border: none;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
     color: var(--text-secondary);
     cursor: pointer;
-    font-weight: 500;
 }
 
 .saveBtn {
+    padding: 0.6rem 1.25rem;
     background: var(--accent-color);
-    color: #000;
     border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    font-weight: 600;
+    border-radius: 6px;
+    color: white;
     cursor: pointer;
-}
-
-.saveBtn:hover {
-    opacity: 0.9;
 }

@@ -15,7 +15,7 @@ import styles from './Dashboard.module.css';
 import { useConfig } from '@/context/ConfigContext';
 
 
-export default function Dashboard({ user }: { user?: { username: string; tags?: string[] } }) {
+export default function Dashboard({ user }: { user?: { username: string; tags?: string[]; role?: string } }) {
     const { config, updateConfig, loading } = useConfig();
     const [search, setSearch] = useState('');
     const [layout, setLayout] = useState<'list' | 'grid4' | 'grid6'>('grid6');
@@ -118,7 +118,7 @@ export default function Dashboard({ user }: { user?: { username: string; tags?: 
     };
 
     const userTags = user?.tags || [];
-    const hasAllAccess = userTags.includes('all');
+    const hasAllAccess = userTags.includes('all') || user?.role === 'admin';
 
     const filteredServices = config.services.filter(s => {
         // Tag Access Control

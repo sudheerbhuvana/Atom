@@ -81,6 +81,15 @@ try {
             db.prepare('ALTER TABLE users ADD COLUMN email TEXT').run();
         }
 
+        // Add 'role' column if missing
+        if (!userColumns.some(c => c.name === 'role')) {
+            console.log('Migrating database: Adding role column to users table...');
+            db.prepare("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'member'").run();
+
+            // Set ID 1 and special users to admin
+            db.prepare("UPDATE users SET role = 'admin' WHERE id = 1 OR username = 'admin' OR username = 'VishnuByrraju'").run();
+        }
+
     } catch (migErr) {
         console.error('Auto-migration error:', migErr);
     }
@@ -142,6 +151,7 @@ export interface User {
     password_hash: string;
     email?: string;
     tags?: string[];
+    role: 'admin' | 'member';
     created_at: string;
 }
 
@@ -152,12 +162,13 @@ export interface Session {
     created_at: string;
 }
 
-// Helper to parse user tags
+// Helper to parse user tags and role
 function parseUser(user: any): User | undefined {
     if (!user) return undefined;
     return {
         ...user,
-        tags: user.tags ? user.tags.split(',') : []
+        tags: user.tags ? user.tags.split(',') : [],
+        role: user.role || 'member'
     };
 }
 
@@ -172,11 +183,11 @@ export function getUserById(id: number): User | undefined {
     return parseUser(user);
 }
 
-export function createUser(username: string, passwordHash: string, email?: string, tags?: string[]): User {
-    // Use INSERT OR IGNORE to prevent race conditions
+export function createUser(username: string, passwordHash: string, email?: string, tags?: string[], role: 'admin' | 'member' = 'member'): User {
+    // Use INSERT OR IGNORE to prevent raise conditions
     const tagsStr = tags ? tags.join(',') : null;
-    const stmt = getStmt('INSERT INTO users (username, password_hash, email, tags) VALUES (?, ?, ?, ?)');
-    const result = stmt.run(username, passwordHash, email || null, tagsStr);
+    const stmt = getStmt('INSERT INTO users (username, password_hash, email, tags, role) VALUES (?, ?, ?, ?, ?)');
+    const result = stmt.run(username, passwordHash, email || null, tagsStr, role);
 
     // Check if insert was successful (SQLite returns changes > 0)
     if (result.changes === 0) {
@@ -194,21 +205,30 @@ export function getUserCount(): number {
 export function updateUserPassword(userId: number, passwordHash: string): void {
     getStmt('UPDATE users SET password_hash = ? WHERE id = ?').run(passwordHash, userId);
 }
+export function updateUserRole(userId: number, role: 'admin' | 'member'): void {
+    getStmt('UPDATE users SET role = ? WHERE id = ?').run(role, userId);
+}
+export function updateUserTags(userId: number, tags: string[]): void {
+    const tagsStr = tags.join(',');
+    getStmt('UPDATE users SET tags = ? WHERE id = ?').run(tagsStr, userId);
+}
 
 export function getAllUsers(): User[] {
-    const users = getStmt('SELECT id, username, password_hash, email, tags, created_at FROM users').all();
+    const users = getStmt('SELECT id, username, password_hash, email, tags, role, created_at FROM users').all();
     return users.map((u: any) => ({
         ...u,
-        tags: u.tags ? u.tags.split(',') : []
+        tags: u.tags ? u.tags.split(',') : [],
+        role: u.role || 'member'
     }));
 }
 
 // Safe version that doesn't return password hashes
 export function getAllUsersSafe(): Omit<User, 'password_hash'>[] {
-    const users = getStmt('SELECT id, username, email, tags, created_at FROM users').all();
+    const users = getStmt('SELECT id, username, email, tags, role, created_at FROM users').all();
     return users.map((u: any) => ({
         ...u,
-        tags: u.tags ? u.tags.split(',') : []
+        tags: u.tags ? u.tags.split(',') : [],
+        role: u.role || 'member'
     }));
 }
 

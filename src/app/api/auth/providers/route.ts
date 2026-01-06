@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import {
     createAuthProvider,
-    listAuthProviders,
+    getAllAuthProviders,
     listEnabledAuthProviders,
     AuthProvider
 } from '@/lib/auth-providers';
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
             if (!user) {
                 return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
             }
-            const providers = listAuthProviders();
+            const providers = getAllAuthProviders();
             // Scrub secrets
             const safeProviders = providers.map(p => ({ ...p, client_secret: undefined }));
             return NextResponse.json(safeProviders);
@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
             token_endpoint: body.token_endpoint,
             userinfo_endpoint: body.userinfo_endpoint,
             jwks_uri: body.jwks_uri,
+            scopes: body.scopes,
             enabled: body.enabled !== false // Default to true
         });
 
@@ -114,6 +115,46 @@ export async function DELETE(request: NextRequest) {
 
     } catch (error) {
         console.error('Failed to delete provider:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}
+
+// Protected endpoint to update a provider
+export async function PUT(request: NextRequest) {
+    try {
+        const user = await getCurrentUser();
+        if (!user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const body = await request.json();
+
+        if (!body.slug) {
+            return NextResponse.json({ error: 'Missing slug' }, { status: 400 });
+        }
+
+        const { updateAuthProvider } = await import('@/lib/auth-providers');
+        const success = updateAuthProvider(body.slug, {
+            name: body.name,
+            issuer: body.issuer,
+            client_id: body.client_id,
+            client_secret: body.client_secret,
+            authorization_endpoint: body.authorization_endpoint,
+            token_endpoint: body.token_endpoint,
+            userinfo_endpoint: body.userinfo_endpoint,
+            jwks_uri: body.jwks_uri,
+            scopes: body.scopes,
+            enabled: body.enabled
+        });
+
+        if (success) {
+            return NextResponse.json({ success: true });
+        } else {
+            return NextResponse.json({ error: 'Provider not found or update failed' }, { status: 404 });
+        }
+
+    } catch (error) {
+        console.error('Failed to update provider:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

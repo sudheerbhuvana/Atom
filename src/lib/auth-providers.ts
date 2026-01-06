@@ -13,6 +13,7 @@ export interface AuthProvider {
     token_endpoint?: string;
     userinfo_endpoint?: string;
     jwks_uri?: string;
+    scopes?: string; // e.g. "openid profile email"
     enabled: boolean;
     created_at: string;
     updated_at: string;
@@ -37,31 +38,37 @@ function getStmt(sql: string): Database.Statement {
     return preparedStmts.get(sql)!;
 }
 
+// Helper to safely cast DB row
+function mapProvider(row: unknown): AuthProvider {
+    const r = row as Omit<AuthProvider, 'enabled'> & { enabled: number };
+    return { ...r, enabled: r.enabled === 1 };
+}
+
 // ============================================================================
 // Auth Provider Operations
 // ============================================================================
 
 export function getAuthProviderBySlug(slug: string): AuthProvider | undefined {
     const row = getStmt('SELECT * FROM auth_providers WHERE slug = ?').get(slug);
-    return row ? { ...(row as any), enabled: (row as any).enabled === 1 } as AuthProvider : undefined;
+    return row ? mapProvider(row) : undefined;
 }
 
-export function listAuthProviders(): AuthProvider[] {
+export function getAllAuthProviders(): AuthProvider[] {
     const rows = getStmt('SELECT * FROM auth_providers ORDER BY name ASC').all();
-    return rows.map(row => ({ ...(row as any), enabled: (row as any).enabled === 1 } as AuthProvider));
+    return rows.map(mapProvider);
 }
 
 export function listEnabledAuthProviders(): AuthProvider[] {
     const rows = getStmt('SELECT * FROM auth_providers WHERE enabled = 1 ORDER BY name ASC').all();
-    return rows.map(row => ({ ...(row as any), enabled: (row as any).enabled === 1 } as AuthProvider));
+    return rows.map(mapProvider);
 }
 
 export function createAuthProvider(
     data: Omit<AuthProvider, 'id' | 'created_at' | 'updated_at'>
 ): AuthProvider {
     const stmt = getStmt(`
-        INSERT INTO auth_providers (name, slug, issuer, client_id, client_secret, authorization_endpoint, token_endpoint, userinfo_endpoint, jwks_uri, enabled)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO auth_providers (name, slug, issuer, client_id, client_secret, authorization_endpoint, token_endpoint, userinfo_endpoint, jwks_uri, scopes, enabled)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     stmt.run(
@@ -74,6 +81,7 @@ export function createAuthProvider(
         data.token_endpoint || null,
         data.userinfo_endpoint || null,
         data.jwks_uri || null,
+        data.scopes || null, // Default scopes will be handled in business logic if null
         data.enabled ? 1 : 0
     );
 
@@ -95,6 +103,7 @@ export function updateAuthProvider(slug: string, updates: Partial<AuthProvider>)
     if (updates.token_endpoint !== undefined) { fields.push('token_endpoint = ?'); values.push(updates.token_endpoint); }
     if (updates.userinfo_endpoint !== undefined) { fields.push('userinfo_endpoint = ?'); values.push(updates.userinfo_endpoint); }
     if (updates.jwks_uri !== undefined) { fields.push('jwks_uri = ?'); values.push(updates.jwks_uri); }
+    if (updates.scopes !== undefined) { fields.push('scopes = ?'); values.push(updates.scopes); }
     if (updates.enabled !== undefined) { fields.push('enabled = ?'); values.push(updates.enabled ? 1 : 0); }
 
     if (fields.length === 0) return false;

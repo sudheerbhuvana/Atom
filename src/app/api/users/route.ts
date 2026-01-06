@@ -35,20 +35,21 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const { username, password, email, tags } = validationResult.data;
+        const { username, password, email, tags, role } = validationResult.data;
 
         // Hash password first
         const passHash = await hashPassword(password);
 
         try {
             // createUser handles race conditions internally
-            const newUser = createUser(username, passHash, email, tags);
+            const newUser = createUser(username, passHash, email, tags, role);
 
             return NextResponse.json({
                 id: newUser.id,
                 username: newUser.username,
                 email: newUser.email,
                 tags: newUser.tags,
+                role: newUser.role,
                 created_at: newUser.created_at
             });
         } catch (e: unknown) {
@@ -120,14 +121,28 @@ export async function PUT(req: NextRequest) {
             );
         }
 
-        const { id, password } = validationResult.data;
+        const { id, password, role, tags } = validationResult.data;
         const user = getUserById(id);
         if (!user) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
-        const passHash = await hashPassword(password);
-        updateUserPassword(id, passHash);
+        if (password) {
+            const passHash = await hashPassword(password);
+            updateUserPassword(id, passHash);
+        }
+
+        if (role) {
+            // Need to import updateUserRole from db first (added it in db.ts changes)
+            // But I must ensure it is exported in db.ts
+            const { updateUserRole } = await import('@/lib/db');
+            updateUserRole(id, role);
+        }
+
+        if (tags) {
+            const { updateUserTags } = await import('@/lib/db');
+            updateUserTags(id, tags);
+        }
 
         return NextResponse.json({ success: true });
     } catch (e: unknown) {

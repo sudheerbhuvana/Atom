@@ -36,7 +36,8 @@ export async function GET(
         url.searchParams.set('response_type', 'code');
         url.searchParams.set('client_id', provider.client_id);
         url.searchParams.set('redirect_uri', redirectUri);
-        url.searchParams.set('scope', 'openid profile email');
+        // Use configured scopes or default to standard OIDC
+        url.searchParams.set('scope', provider.scopes || 'openid profile email');
         url.searchParams.set('state', state);
         url.searchParams.set('nonce', nonce);
 

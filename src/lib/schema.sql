@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash TEXT NOT NULL,
     email TEXT,
     tags TEXT,
+    role TEXT DEFAULT 'member',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
