@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Save, Upload, Download, Trash2, Edit3, Plus, Sun, Moon, Code, X } from 'lucide-react';
+import { ArrowLeft, Save, Upload, Download, Trash2, Edit3, Plus, Sun, Moon, Code, X, Lock, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import { Service, Link as AppLink, Widget } from '@/types';
 import { useTheme } from '@/context/ThemeContext';
@@ -58,13 +58,32 @@ export default function SettingsPage() {
 
     if (userRole !== 'admin') {
         return (
-            <div className={styles.container}>
-                <div style={{ textAlign: 'center', marginTop: '4rem' }}>
-                    <h1>Access Denied</h1>
-                    <p>You do not have permission to view this page.</p>
-                    <button className={styles.btnPrimary} onClick={() => window.location.href = '/'}>
-                        Go to Dashboard
-                    </button>
+            <div className={styles.container} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+                <div style={{ textAlign: 'center', maxWidth: '400px', padding: '2rem', border: '1px solid var(--border-color)', borderRadius: 'var(--radius)', background: 'var(--card-bg)' }}>
+                    <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+                        <div style={{ padding: '1rem', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
+                            <Lock size={48} />
+                        </div>
+                    </div>
+                    <h1 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Access Denied</h1>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
+                        You do not have administrative permissions to access the settings configuration.
+                    </p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <button className={styles.btnPrimary} onClick={() => window.location.href = '/'}>
+                            Return to Dashboard
+                        </button>
+                        <button
+                            className={styles.btnSecondary}
+                            onClick={async () => {
+                                await fetch('/api/auth/logout', { method: 'POST' });
+                                window.location.href = '/login';
+                            }}
+                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                        >
+                            <LogOut size={16} /> Logout
+                        </button>
+                    </div>
                 </div>
             </div>
         );

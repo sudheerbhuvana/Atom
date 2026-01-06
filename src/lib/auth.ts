@@ -80,8 +80,12 @@ export async function register(username: string, password: string, email?: strin
     const hash = await hashPassword(password);
 
     try {
+        // Check if this is the first user (onboarding)
+        const isFirstUser = getUserCount() === 0;
+        const role = isFirstUser ? 'admin' : 'member';
+
         // createUser will throw if username exists (prevents race condition)
-        const user = createUser(username, hash, email);
+        const user = createUser(username, hash, email, undefined, role);
 
         // Auto-login after registration
         const session = createSession(user.id);
