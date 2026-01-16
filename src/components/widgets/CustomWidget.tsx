@@ -23,7 +23,6 @@ export default function CustomWidget({
     icon,
     refreshInterval = 10000
 }: CustomWidgetProps) {
-    console.log('Rendering Custom Widget:', title); // Debug Log
     const [data, setData] = useState<unknown>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -88,14 +87,19 @@ export default function CustomWidget({
 
     const widgetId = `custom-widget-${title.replace(/\s+/g, '-').toLowerCase()}-${Math.random().toString(36).substr(2, 5)}`;
 
-    useEffect(() => {
+    const scriptState = React.useRef<Record<string, unknown>>({});
+
+    // Use useLayoutEffect to prevent FOUC (flash of unstyled content)
+    // This runs synchronously after DOM mutations but before browser paint
+    React.useLayoutEffect(() => {
         if (!script || !data) return;
 
         try {
-            const fn = new Function('data', 'element', script);
+            // Pass persistent state as 3rd argument 'widgetState'
+            const fn = new Function('data', 'element', 'widgetState', script);
             const containerElement = document.getElementById(widgetId);
             if (containerElement) {
-                fn(data, containerElement);
+                fn(data, containerElement, scriptState.current);
             }
         } catch (err) {
             console.error('Custom widget script error:', err);
