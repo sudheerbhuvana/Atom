@@ -26,7 +26,12 @@ export async function POST(request: Request) {
         }
 
         // Validate and return redirect URL if provided
-        const baseUrl = request.headers.get('origin') || 'http://localhost:3000';
+        // Use origin from request headers
+        const origin = request.headers.get('origin');
+        const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
+        const protocol = request.headers.get('x-forwarded-proto') || (host?.includes('localhost') ? 'http' : 'https');
+        const baseUrl = origin || `${protocol}://${host}`;
+
         let redirect = '/';
 
         if (returnTo && typeof returnTo === 'string') {

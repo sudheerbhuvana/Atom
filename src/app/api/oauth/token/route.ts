@@ -15,9 +15,9 @@ export async function POST(request: NextRequest) {
         // Parse form data (OAuth2 tokens use application/x-www-form-urlencoded)
         const formData = await request.formData();
 
-        // Dynamically determine issuer URL from request headers
-        const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || 'localhost:3000';
-        const protocol = request.headers.get('x-forwarded-proto') || 'http';
+        // Get the base URL from request headers to properly construct issuer
+        const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
+        const protocol = request.headers.get('x-forwarded-proto') || (host?.includes('localhost') ? 'http' : 'https');
         const issuer = `${protocol}://${host}`;
 
         // Check for Basic Auth header

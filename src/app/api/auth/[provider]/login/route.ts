@@ -23,8 +23,9 @@ export async function GET(
         }
 
         // Construct Redirect URI (Callback)
-        const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || 'localhost:3000';
-        const protocol = request.headers.get('x-forwarded-proto') || 'http';
+        // Use x-forwarded-host for proxy setups, fall back to host header
+        const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
+        const protocol = request.headers.get('x-forwarded-proto') || (host?.includes('localhost') ? 'http' : 'https');
         const redirectUri = `${protocol}://${host}/api/auth/${slug}/callback`;
 
         // Get returnTo from query params to preserve through OAuth flow

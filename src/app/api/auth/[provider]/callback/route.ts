@@ -86,9 +86,9 @@ export async function GET(
             throw new Error('Missing token endpoint');
         }
 
-        // 4. Exchange Code
-        const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || 'localhost:3000';
-        const protocol = request.headers.get('x-forwarded-proto') || 'http';
+        // Construct callback redirect_uri (must match what was sent to provider)
+        const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
+        const protocol = request.headers.get('x-forwarded-proto') || (host?.includes('localhost') ? 'http' : 'https');
         const redirectUri = `${protocol}://${host}/api/auth/${slug}/callback`;
 
         // GitHub specifically requires 'Accept: application/json'

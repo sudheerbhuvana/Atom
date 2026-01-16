@@ -53,8 +53,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Dynamically determine base URL from request headers to avoid 0.0.0.0 redirects
-    const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || 'localhost:3000';
-    const protocol = request.headers.get('x-forwarded-proto') || 'http';
+    const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
+    const protocol = request.headers.get('x-forwarded-proto') || (host?.includes('localhost') ? 'http' : 'https');
     const baseUrl = `${protocol}://${host}`;
 
     // Check if user is authenticated
