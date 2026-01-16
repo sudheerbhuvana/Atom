@@ -19,7 +19,15 @@ export async function GET(request: Request) {
     }
 
     try {
-        const res = await fetch(targetUrl);
+        const headers = new Headers();
+        const userAgent = request.headers.get('user-agent');
+        if (userAgent) {
+            headers.set('User-Agent', userAgent);
+        } else {
+            headers.set('User-Agent', 'Atom-Dashboard-Proxy/1.0');
+        }
+
+        const res = await fetch(targetUrl, { headers });
 
         if (!res.ok) {
             return NextResponse.json(

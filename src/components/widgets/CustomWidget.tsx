@@ -9,6 +9,7 @@ export interface CustomWidgetProps {
     endpoint: string;
     template: string;
     styles: string;
+    script?: string;
     refreshInterval?: number;
     icon?: string;
 }
@@ -18,6 +19,7 @@ export default function CustomWidget({
     endpoint,
     template,
     styles,
+    script,
     icon,
     refreshInterval = 10000
 }: CustomWidgetProps) {
@@ -83,6 +85,22 @@ export default function CustomWidget({
         return html;
     };
 
+    const widgetId = `custom-widget-${title.replace(/\s+/g, '-').toLowerCase()}-${Math.random().toString(36).substr(2, 5)}`;
+
+    useEffect(() => {
+        if (!script || !data) return;
+
+        try {
+            const fn = new Function('data', 'element', script);
+            const containerElement = document.getElementById(widgetId);
+            if (containerElement) {
+                fn(data, containerElement);
+            }
+        } catch (err) {
+            console.error('Custom widget script error:', err);
+        }
+    }, [data, script, widgetId]);
+
     if (loading && !data && !error) {
         return (
             <WidgetContainer title={title} icon={IconComponent && <IconComponent size={16} />}>
@@ -91,8 +109,6 @@ export default function CustomWidget({
         );
     }
 
-    // Scoped ID for styles
-    const widgetId = `custom-widget-${title.replace(/\s+/g, '-').toLowerCase()}-${Math.random().toString(36).substr(2, 5)}`;
 
     return (
         <WidgetContainer title={title} error={error} icon={IconComponent && <IconComponent size={16} />}>

@@ -35,6 +35,7 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
 
     const [template, setTemplate] = useState(initialData?.options?.template as string || '');
     const [stylesValue, setStylesValue] = useState(initialData?.options?.styles as string || '');
+    const [scriptValue, setScriptValue] = useState(initialData?.options?.script as string || '');
     const [testData, setTestData] = useState<string | null>(null);
     const [testingEndpoint, setTestingEndpoint] = useState(false);
 
@@ -46,7 +47,7 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
                 type,
                 title,
                 options: type === 'generic' ? { endpoint, fields: fields.filter(f => f.label && f.path) } :
-                    type === 'custom' ? { endpoint, template, styles: stylesValue } : {}
+                    type === 'custom' ? { endpoint, template, styles: stylesValue, script: scriptValue } : {}
             };
             setRawJson(JSON.stringify(currentData, null, 2));
             setJsonError('');
@@ -68,6 +69,7 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
                     setEndpoint(parsed.options.endpoint || '');
                     setTemplate(parsed.options.template || '');
                     setStylesValue(parsed.options.styles || '');
+                    setScriptValue(parsed.options.script || '');
                 }
                 setIsJsonMode(false);
             } catch {
@@ -204,7 +206,8 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
                 newWidget.options = {
                     endpoint,
                     template,
-                    styles: stylesValue
+                    styles: stylesValue,
+                    script: scriptValue
                 };
             }
             finalWidget = newWidget;
@@ -405,6 +408,16 @@ export default function AddWidgetModal({ onClose, onSave, initialData }: AddWidg
                                             style={{ minHeight: '100px', fontFamily: 'monospace' }}
                                         />
                                         <span className={styles.hint}>Styles are scoped to this widget.</span>
+                                    </div>
+                                    <div className={styles.field}>
+                                        <label>JavaScript (Optional)</label>
+                                        <textarea
+                                            placeholder={`// Access data and element\nelement.querySelector('.item').addEventListener('click', () => {\n  console.log(data);\n});`}
+                                            value={scriptValue}
+                                            onChange={(e) => setScriptValue(e.target.value)}
+                                            style={{ minHeight: '120px', fontFamily: 'monospace' }}
+                                        />
+                                        <span className={styles.hint}>Optional JavaScript to run when data loads. Available: data (JSON), element (widget DOM).</span>
                                     </div>
                                 </>
                             )}

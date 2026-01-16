@@ -215,10 +215,11 @@ export default function Dashboard({ user }: { user?: { username: string; tags?: 
                                 )}
                                 {widget.type === 'custom' && (
                                     <CustomWidget
-                                        title={widget.title || 'Widget'}
+                                        title=""
                                         endpoint={(widget.options as { endpoint?: string })?.endpoint || ''}
                                         template={(widget.options as { template?: string })?.template || ''}
                                         styles={(widget.options as { styles?: string })?.styles || ''}
+                                        script={(widget.options as { script?: string })?.script || ''}
                                         refreshInterval={(widget.options as { refreshInterval?: number })?.refreshInterval}
                                     />
                                 )}

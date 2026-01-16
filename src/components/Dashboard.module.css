@@ -269,12 +269,13 @@
     grid-column: 1 / -1;
     text-align: center;
     padding: 2rem;
-    color: var(--text-muted);
+    color: var(--text-secondary);
 }
 
 .emptyState p {
     margin-bottom: 1rem;
     font-size: 0.9rem;
+    color: var(--text-secondary);
 }
 
 .searchWebBtn {
@@ -282,17 +283,18 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.6rem 1.2rem;
-    background: #222222;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     color: var(--text-primary);
     font-size: 0.85rem;
     text-decoration: none;
-    transition: background 0.2s;
+    transition: all 0.2s;
 }
 
 .searchWebBtn:hover {
-    background: #2a2a2a;
+    background: var(--bg-hover);
+    border-color: var(--accent-color);
 }
 
 .settingsBtn {
