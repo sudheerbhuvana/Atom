@@ -4,9 +4,9 @@ import {
     createAuthProvider,
     getAllAuthProviders,
     listEnabledAuthProviders,
-    AuthProvider
+    // AuthProvider // Removed as per instruction
 } from '@/lib/auth-providers';
-import { getOIDCConfiguration } from '@/lib/oidc/discovery'; // We might want a real discovery fetcher later
+// import { getOIDCConfiguration } from '@/lib/oidc/discovery'; // We might want a real discovery fetcher later // Removed as per instruction
 
 export const dynamic = 'force-dynamic';
 

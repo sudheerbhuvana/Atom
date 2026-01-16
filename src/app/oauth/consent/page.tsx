@@ -1,19 +1,18 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { getOAuthClientByClientId } from '@/lib/db-oauth';
+import { useSearchParams } from 'next/navigation';
 import styles from './page.module.css';
 
 function ConsentContent() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
     const [clientInfo, setClientInfo] = useState<{
         name: string;
         description?: string;
     } | null>(null);
 
-    const router = useRouter();
     const searchParams = useSearchParams();
 
     const client_id = searchParams.get('client_id') || '';
@@ -78,8 +77,8 @@ function ConsentContent() {
                 return;
             }
 
-            // Redirect back to application
-            window.location.href = data.redirect_uri;
+            // Set redirect URL to trigger navigation in useEffect
+            setRedirectUrl(data.redirect_uri);
         } catch {
             setError('Something went wrong');
             setLoading(false);
@@ -105,13 +104,20 @@ function ConsentContent() {
 
             const data = await res.json();
 
-            // Redirect back to application with error
-            window.location.href = data.redirect_uri;
+            // Set redirect URL to trigger navigation in useEffect
+            setRedirectUrl(data.redirect_uri);
         } catch {
             setError('Something went wrong');
             setLoading(false);
         }
     };
+
+    // Handle redirects via useEffect to avoid React Hook immutability violations
+    useEffect(() => {
+        if (redirectUrl) {
+            window.location.href = redirectUrl;
+        }
+    }, [redirectUrl]);
 
     const getScopeDescription = (scope: string): string => {
         const descriptions: Record<string, string> = {

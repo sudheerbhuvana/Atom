@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAccessToken } from '@/lib/db-oauth';
 import { getUserById } from '@/lib/db';
+import { verifyJWT } from '@/lib/oidc/jwt';
 
 /**
  * OAuth2 UserInfo Endpoint
@@ -27,8 +28,14 @@ export async function GET(request: NextRequest) {
     // If not found in DB, try verifying as JWT (for OIDC stateless tokens)
     if (!accessToken) {
         try {
-            const { verifyJWT } = require('@/lib/oidc/jwt');
-            const payload = verifyJWT(token);
+            const payload = verifyJWT(token) as {
+                sub: string;
+                scope?: string;
+                client_id?: string;
+                aud?: string;
+                exp: number;
+                iat: number;
+            };
 
             // Reconstruct access token object from JWT payload
             if (payload && payload.sub) {

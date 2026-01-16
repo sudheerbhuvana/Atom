@@ -275,3 +275,64 @@
     color: white;
     cursor: pointer;
 }
+
+/* Field Error Styling */
+.fieldError {
+    font-size: 0.8rem;
+    color: #ef4444;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.field input[aria-invalid="true"],
+.field select[aria-invalid="true"] {
+    border-color: #ef4444;
+}
+
+/* Password Strength Indicator */
+.passwordStrength {
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.strengthBar {
+    flex: 1;
+    height: 4px;
+    background: var(--bg-tertiary);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+}
+
+.strengthFill {
+    height: 100%;
+    transition: all 0.3s ease;
+    border-radius: 2px;
+}
+
+.strengthBar.weak .strengthFill {
+    width: 33%;
+    background: #ef4444;
+}
+
+.strengthBar.medium .strengthFill {
+    width: 66%;
+    background: #f59e0b;
+}
+
+.strengthBar.strong .strengthFill {
+    width: 100%;
+    background: #10b981;
+}
+
+.strengthLabel {
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.passwordHint {
+    margin-top: 0.25rem;
+}

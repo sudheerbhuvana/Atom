@@ -4,6 +4,7 @@ import { createUser, getUserByUsername, createSession, getUserById } from '@/lib
 import { fetchOIDCConfiguration } from '@/lib/oidc/client-discovery';
 import jose from 'node-jose';
 import { cookies } from 'next/headers';
+import { getSafeRedirectUrl } from '@/lib/redirect-utils';
 
 // We need a way to find user by email from db.ts
 // Assuming query `SELECT * FROM users WHERE email = ?` exists or I add it.
@@ -37,13 +38,13 @@ export async function GET(
     }
 
     const cookieStore = await cookies();
-    const stateCookie = cookieStore.get('atom_oauth_state');
+    const stateCookie = cookieStore.get(`oauth_state_${slug}`);
 
     if (!stateCookie) {
         return NextResponse.redirect(new URL('/login?error=State+cookie+missing', request.url));
     }
 
-    let savedState: any;
+    let savedState: { state: string; nonce: string; provider: string; returnTo?: string };
     try {
         savedState = JSON.parse(stateCookie.value);
     } catch {
@@ -55,7 +56,7 @@ export async function GET(
     }
 
     // Clear state cookie
-    cookieStore.delete('atom_oauth_state');
+    cookieStore.delete(`oauth_state_${slug}`);
 
     // 2. Get Provider Config
     const provider = getAuthProviderBySlug(slug);
@@ -213,17 +214,25 @@ export async function GET(
             linkFederatedIdentity(userId, slug, subject, email || undefined);
         }
 
-        // 8. Create Session
+        // Create session
         const session = createSession(userId);
-        const response = NextResponse.redirect(new URL('/', request.url));
-        const isSecure = process.env.COOKIE_SECURE === 'true';
 
+        // Build redirect URL with validation
+        const baseUrl = request.nextUrl.origin;
+        const returnTo = savedState.returnTo;
+
+        // Validate and use returnTo if provided, otherwise default to root
+        const redirectUrl = getSafeRedirectUrl(returnTo, '/', baseUrl);
+
+        // Create response with redirect
+        const response = NextResponse.redirect(new URL(redirectUrl, baseUrl));
+
+        // Set session cookie
         response.cookies.set('atom_session', session.id, {
             httpOnly: true,
-            secure: isSecure,
+            secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
-            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-            path: '/',
+            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
         });
 
         return response;

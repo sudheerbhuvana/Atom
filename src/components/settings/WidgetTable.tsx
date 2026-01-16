@@ -115,7 +115,7 @@ export default function WidgetTable({ widgets, onDelete, onEdit }: WidgetTablePr
                         {filteredWidgets.length === 0 && (
                             <tr>
                                 <td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
-                                    No widgets found matching "{search}"
+                                    No widgets found matching &quot;{search}&quot;
                                 </td>
                             </tr>
                         )}

@@ -137,7 +137,7 @@ export default function EditableTable({ items, onDelete, onEdit, title = "Items"
                         {filteredItems.length === 0 && (
                             <tr>
                                 <td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
-                                    No {title.toLowerCase()} found matching "{search}"
+                                    No {title.toLowerCase()} found matching &quot;{search}&quot;
                                 </td>
                             </tr>
                         )}

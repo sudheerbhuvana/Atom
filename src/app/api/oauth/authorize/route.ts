@@ -3,7 +3,6 @@ import { getCurrentUser } from '@/lib/auth';
 import { validateAuthorizeRequest, generateAuthorizationCode, type AuthorizeParams } from '@/lib/oauth/provider';
 import { getUserConsent } from '@/lib/db-oauth';
 import { getConfig } from '@/lib/config';
-import { redirect } from 'next/navigation';
 
 /**
  * OAuth2 Authorization Endpoint

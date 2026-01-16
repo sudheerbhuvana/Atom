@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Save, Upload, Download, Trash2, Edit3, Plus, Sun, Moon, Code, X, Lock, LogOut } from 'lucide-react';
+import { ArrowLeft, Save, Upload, Download, Plus, Sun, Moon, Code, X, Lock, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import { Service, Link as AppLink, Widget } from '@/types';
 import { useTheme } from '@/context/ThemeContext';

@@ -211,7 +211,7 @@ networks:
                 <div className={styles.createdClientCard}>
                     <div className={styles.successBanner}>
                         <CheckCircle2 size={20} />
-                        Application created successfully! Save these credentials securely - the client secret won't be shown again.
+                        Application created successfully! Save these credentials securely - the client secret won&apos;t be shown again.
                     </div>
 
                     <div className={styles.credentialRow}>
@@ -318,7 +318,7 @@ networks:
                                 </label>
                             ))}
                         </div>
-                        <p className={styles.hint}>Select which scopes this application can request. 'openid' is required for OIDC.</p>
+                        <p className={styles.hint}>Select which scopes this application can request. &apos;openid&apos; is required for OIDC.</p>
                     </div>
 
                     <div className={styles.formActions}>

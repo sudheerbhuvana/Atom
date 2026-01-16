@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { getSafeRedirectUrl } from '@/lib/redirect-utils';
 import styles from './page.module.css';
 
 export default function LoginPage() {
@@ -12,12 +13,13 @@ export default function LoginPage() {
     const [checking, setChecking] = useState(true);
     const [providers, setProviders] = useState<{ name: string; slug: string }[]>([]);
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const returnTo = searchParams.get('returnTo');
 
     // Check if onboarding is needed & Check for errors & fetch providers
     useEffect(() => {
         // Parse URL params for errors
-        const params = new URLSearchParams(window.location.search);
-        const errorMsg = params.get('error');
+        const errorMsg = searchParams.get('error');
         if (errorMsg) {
             setError(decodeURIComponent(errorMsg));
         }
@@ -51,7 +53,7 @@ export default function LoginPage() {
             });
 
         return () => clearTimeout(timeout);
-    }, [router]);
+    }, [router, searchParams]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -62,7 +64,11 @@ export default function LoginPage() {
             const res = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify({
+                    username,
+                    password,
+                    returnTo: returnTo || undefined
+                }),
             });
 
             const data = await res.json();
@@ -72,7 +78,14 @@ export default function LoginPage() {
                 return;
             }
 
-            router.push('/');
+            // Use validated redirect URL from server or fallback to root
+            const redirectUrl = getSafeRedirectUrl(
+                data.redirect || returnTo,
+                '/',
+                window.location.origin
+            );
+
+            router.push(redirectUrl);
         } catch {
             setError('Something went wrong');
         } finally {
@@ -133,21 +146,28 @@ export default function LoginPage() {
                             Or continue with
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            {providers.map(p => (
-                                <button
-                                    key={p.slug}
-                                    type="button"
-                                    className={styles.button}
-                                    style={{
-                                        backgroundColor: 'var(--bg-secondary)',
-                                        color: 'var(--text-primary)',
-                                        border: '1px solid var(--border-color)'
-                                    }}
-                                    onClick={() => window.location.href = `/api/auth/${p.slug}/login`}
-                                >
-                                    Sign in with {p.name}
-                                </button>
-                            ))}
+                            {providers.map(p => {
+                                // Preserve returnTo when using OAuth providers
+                                const providerUrl = returnTo
+                                    ? `/api/auth/${p.slug}/login?returnTo=${encodeURIComponent(returnTo)}`
+                                    : `/api/auth/${p.slug}/login`;
+
+                                return (
+                                    <button
+                                        key={p.slug}
+                                        type="button"
+                                        className={styles.button}
+                                        style={{
+                                            backgroundColor: 'var(--bg-secondary)',
+                                            color: 'var(--text-primary)',
+                                            border: '1px solid var(--border-color)'
+                                        }}
+                                        onClick={() => window.location.href = providerUrl}
+                                    >
+                                        Sign in with {p.name}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
                 )}

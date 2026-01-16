@@ -27,6 +27,9 @@ export async function GET(
         const protocol = request.headers.get('x-forwarded-proto') || 'http';
         const redirectUri = `${protocol}://${host}/api/auth/${slug}/callback`;
 
+        // Get returnTo from query params to preserve through OAuth flow
+        const returnToParam = request.nextUrl.searchParams.get('returnTo');
+
         // Generate State & Nonce
         const state = crypto.randomUUID();
         const nonce = crypto.randomUUID();
@@ -44,14 +47,21 @@ export async function GET(
         // Create response with redirect
         const response = NextResponse.redirect(url.toString());
 
-        // Store state in cookie for validation in callback
-        // Expires in 10 minutes
-        response.cookies.set('atom_oauth_state', JSON.stringify({ state, nonce, provider: slug }), {
+        // Store state in cookie for validation on callback
+        // Include returnTo in state to preserve it through the OAuth flow
+        const stateData = {
+            state,
+            nonce,
+            provider: slug,
+            returnTo: returnToParam || undefined
+        };
+
+        response.cookies.set(`oauth_state_${slug}`, JSON.stringify(stateData), {
             httpOnly: true,
-            secure: process.env.COOKIE_SECURE === 'true',
+            secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
-            maxAge: 600,
-            path: '/api/auth' // Limit scope to auth routes
+            maxAge: 600, // 10 minutes
+            path: '/'
         });
 
         return response;

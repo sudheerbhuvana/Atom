@@ -10,9 +10,10 @@ import {
     updateOAuthClient,
     getOAuthClientByClientId
 } from '@/lib/db-oauth';
+import crypto from 'crypto';
 import { SUPPORTED_SCOPES } from '@/lib/oauth/types';
 import { getConfig, saveConfig } from '@/lib/config';
-import { AppConfig, Service } from '@/types';
+import { Service } from '@/types';
 
 /**
  * OAuth2 Client Management API
@@ -107,7 +108,8 @@ export async function GET(request: NextRequest) {
         }
 
         // Don't return client secrets in list view
-        const safeClients = clients.map(client => {
+        const safeClients = clients.map((client) => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { client_secret, ...rest } = client;
             return rest;
         });

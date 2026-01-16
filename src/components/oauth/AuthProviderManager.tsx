@@ -13,6 +13,13 @@ interface AuthProvider {
     enabled: boolean;
 }
 
+interface AuthProviderDetails extends AuthProvider {
+    authorization_endpoint?: string;
+    token_endpoint?: string;
+    userinfo_endpoint?: string;
+    scopes?: string;
+}
+
 export default function AuthProviderManager() {
     const [providers, setProviders] = useState<AuthProvider[]>([]);
     const [loading, setLoading] = useState(true);
@@ -77,10 +84,11 @@ export default function AuthProviderManager() {
 
         // Endpoints might not be in the list API response if we didn't add them to the select?
         // The list API does 'SELECT *', so they should be there.
-        setAuthEndpoint((provider as any).authorization_endpoint || '');
-        setTokenEndpoint((provider as any).token_endpoint || '');
-        setUserInfoEndpoint((provider as any).userinfo_endpoint || '');
-        setScopes((provider as any).scopes || '');
+        const details = provider as AuthProviderDetails;
+        setAuthEndpoint(details.authorization_endpoint || '');
+        setTokenEndpoint(details.token_endpoint || '');
+        setUserInfoEndpoint(details.userinfo_endpoint || '');
+        setScopes(details.scopes || '');
 
         setEditingProvider(provider.slug);
         setShowForm(true);
@@ -91,7 +99,18 @@ export default function AuthProviderManager() {
 
         try {
             const method = editingProvider ? 'PUT' : 'POST';
-            const body: any = {
+            const body: {
+                name: string;
+                slug: string;
+                issuer: string;
+                client_id: string;
+                authorization_endpoint?: string;
+                token_endpoint?: string;
+                userinfo_endpoint?: string;
+                scopes?: string;
+                enabled: boolean;
+                client_secret?: string;
+            } = {
                 name,
                 slug: slug.toLowerCase().replace(/[^a-z0-9-]/g, '-'),
                 issuer,
@@ -141,7 +160,7 @@ export default function AuthProviderManager() {
 
             toast.success('Provider deleted');
             fetchProviders();
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to delete provider');
         }
     };
@@ -274,14 +293,14 @@ export default function AuthProviderManager() {
                                 onChange={e => setScopes(e.target.value)}
                             />
                             <small style={{ display: 'block', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                                Space-separated list of scopes. Defaults to 'openid profile email'.
+                                Space-separated list of scopes. Defaults to &apos;openid profile email&apos;.
                             </small>
                         </div>
 
                         <div className={styles.divider} style={{ margin: '1rem 0', borderTop: '1px solid var(--border-color)' }}></div>
                         <h4 style={{ fontSize: '0.9rem', marginBottom: '0.75rem', color: 'var(--text-secondary)' }}>Manual Configuration (Optional)</h4>
                         <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-                            Required for providers that don't support OIDC Discovery (e.g., GitHub).
+                            Required for providers that don&apos;t support OIDC Discovery (e.g., GitHub).
                             Leave blank to attempt auto-discovery from Issuer URL.
                         </p>
 
