@@ -5,7 +5,7 @@
     height: 100vh;
     display: flex;
     flex-direction: column;
-    color: #fff;
+    color: var(--text-primary);
     overflow: hidden;
 }
 
@@ -318,7 +318,7 @@
 }
 
 .closeBtn:hover {
-    color: #fff;
+    color: var(--text-primary);
 }
 
 .configTextarea {

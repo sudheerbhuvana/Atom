@@ -15,6 +15,9 @@ export interface AuthProvider {
     jwks_uri?: string;
     scopes?: string; // e.g. "openid profile email"
     enabled: boolean;
+    user_match_field?: 'email' | 'username' | 'sub';
+    auto_register?: boolean;
+    auto_launch?: boolean;
     created_at: string;
     updated_at: string;
 }
@@ -40,8 +43,17 @@ function getStmt(sql: string): Database.Statement {
 
 // Helper to safely cast DB row
 function mapProvider(row: unknown): AuthProvider {
-    const r = row as Omit<AuthProvider, 'enabled'> & { enabled: number };
-    return { ...r, enabled: r.enabled === 1 };
+    const r = row as Omit<AuthProvider, 'enabled' | 'auto_register' | 'auto_launch'> & {
+        enabled: number;
+        auto_register?: number;
+        auto_launch?: number;
+    };
+    return {
+        ...r,
+        enabled: r.enabled === 1,
+        auto_register: r.auto_register === 1,
+        auto_launch: r.auto_launch === 1
+    };
 }
 
 // ============================================================================
@@ -67,8 +79,8 @@ export function createAuthProvider(
     data: Omit<AuthProvider, 'id' | 'created_at' | 'updated_at'>
 ): AuthProvider {
     const stmt = getStmt(`
-        INSERT INTO auth_providers (name, slug, issuer, client_id, client_secret, authorization_endpoint, token_endpoint, userinfo_endpoint, jwks_uri, scopes, enabled)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO auth_providers (name, slug, issuer, client_id, client_secret, authorization_endpoint, token_endpoint, userinfo_endpoint, jwks_uri, scopes, enabled, user_match_field, auto_register, auto_launch)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     stmt.run(
@@ -81,8 +93,11 @@ export function createAuthProvider(
         data.token_endpoint || null,
         data.userinfo_endpoint || null,
         data.jwks_uri || null,
-        data.scopes || null, // Default scopes will be handled in business logic if null
-        data.enabled ? 1 : 0
+        data.scopes || null,
+        data.enabled ? 1 : 0,
+        data.user_match_field || 'email',
+        data.auto_register !== undefined ? (data.auto_register ? 1 : 0) : 1,
+        data.auto_launch ? 1 : 0
     );
 
     return getAuthProviderBySlug(data.slug)!;
@@ -105,6 +120,9 @@ export function updateAuthProvider(slug: string, updates: Partial<AuthProvider>)
     if (updates.jwks_uri !== undefined) { fields.push('jwks_uri = ?'); values.push(updates.jwks_uri); }
     if (updates.scopes !== undefined) { fields.push('scopes = ?'); values.push(updates.scopes); }
     if (updates.enabled !== undefined) { fields.push('enabled = ?'); values.push(updates.enabled ? 1 : 0); }
+    if (updates.user_match_field !== undefined) { fields.push('user_match_field = ?'); values.push(updates.user_match_field); }
+    if (updates.auto_register !== undefined) { fields.push('auto_register = ?'); values.push(updates.auto_register ? 1 : 0); }
+    if (updates.auto_launch !== undefined) { fields.push('auto_launch = ?'); values.push(updates.auto_launch ? 1 : 0); }
 
     if (fields.length === 0) return false;
 

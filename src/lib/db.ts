@@ -134,6 +134,45 @@ try {
     if (federatedSchemaPath) {
         const fedSchema = fs.readFileSync(federatedSchemaPath, 'utf8');
         db.exec(fedSchema);
+
+        // Auto-migration for auth_providers new columns
+        // This runs on every startup to ensure backward compatibility
+        try {
+            // Check if table exists first
+            const tableExists = db.prepare(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='auth_providers'"
+            ).get();
+
+            if (tableExists) {
+                const authProviderColumns = db.prepare('PRAGMA table_info(auth_providers)').all() as { name: string }[];
+                const existingColumnNames = authProviderColumns.map(c => c.name);
+
+                console.log('Checking auth_providers schema...');
+
+                // Add user_match_field if missing
+                if (!existingColumnNames.includes('user_match_field')) {
+                    console.log('✓ Migrating database: Adding user_match_field to auth_providers...');
+                    db.prepare("ALTER TABLE auth_providers ADD COLUMN user_match_field TEXT DEFAULT 'email'").run();
+                }
+
+                // Add auto_register if missing
+                if (!existingColumnNames.includes('auto_register')) {
+                    console.log('✓ Migrating database: Adding auto_register to auth_providers...');
+                    db.prepare('ALTER TABLE auth_providers ADD COLUMN auto_register INTEGER DEFAULT 1').run();
+                }
+
+                // Add auto_launch if missing
+                if (!existingColumnNames.includes('auto_launch')) {
+                    console.log('✓ Migrating database: Adding auto_launch to auth_providers...');
+                    db.prepare('ALTER TABLE auth_providers ADD COLUMN auto_launch INTEGER DEFAULT 0').run();
+                }
+
+                console.log('✓ auth_providers schema migration complete');
+            }
+        } catch (migErr) {
+            console.error('❌ Auth provider migration error:', migErr);
+            // Don't throw - allow app to continue even if migration fails
+        }
     } else {
         console.warn('Federated Auth schema file not found');
     }
@@ -173,6 +212,11 @@ function parseUser(user: any): User | undefined {
 }
 
 // User operations
+export function getUserByEmail(email: string): User | undefined {
+    const user = getStmt('SELECT * FROM users WHERE email = ?').get(email);
+    return parseUser(user);
+}
+
 export function getUserByUsername(username: string): User | undefined {
     const user = getStmt('SELECT * FROM users WHERE username = ?').get(username);
     return parseUser(user);

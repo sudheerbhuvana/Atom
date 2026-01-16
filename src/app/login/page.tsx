@@ -27,8 +27,21 @@ export default function LoginPage() {
         // Fetch Providers
         fetch('/api/auth/providers')
             .then(res => res.json())
-            .then(data => {
-                if (Array.isArray(data)) setProviders(data);
+            .then((data: any) => {
+                if (Array.isArray(data)) {
+                    setProviders(data);
+
+                    // Auto-launch if exactly one provider with auto_launch enabled
+                    const autoLaunchProviders = data.filter((p: any) => p.auto_launch);
+                    // Preserve returnTo when auto-launching
+                    const returnToParam = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : '';
+
+                    if (autoLaunchProviders.length === 1) {
+                        const provider = autoLaunchProviders[0];
+                        window.location.href = `/api/auth/${provider.slug}/login${returnToParam}`;
+                        return; // Exit early since we're redirecting
+                    }
+                }
             })
             .catch(console.error);
 

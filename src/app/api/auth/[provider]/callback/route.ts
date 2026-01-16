@@ -6,8 +6,6 @@ import jose from 'node-jose';
 import { cookies } from 'next/headers';
 import { getSafeRedirectUrl } from '@/lib/redirect-utils';
 
-// We need a way to find user by email from db.ts
-// Assuming query `SELECT * FROM users WHERE email = ?` exists or I add it.
 import db from '@/lib/db';
 
 function getUserByEmail(email: string) {
@@ -23,7 +21,7 @@ export async function GET(
 ) {
     const { provider: slug } = await params;
 
-    // 1. Validate State
+
     const searchParams = request.nextUrl.searchParams;
     const code = searchParams.get('code');
     const state = searchParams.get('state');
@@ -58,14 +56,13 @@ export async function GET(
     // Clear state cookie
     cookieStore.delete(`oauth_state_${slug}`);
 
-    // 2. Get Provider Config
+
     const provider = getAuthProviderBySlug(slug);
     if (!provider || !provider.enabled) {
         return NextResponse.redirect(new URL('/login?error=Provider+disabled', request.url));
     }
 
     try {
-        // 3. Discover Endpoints if needed
         let tokenEndpoint = provider.token_endpoint;
         let jwksUri = provider.jwks_uri;
         let userInfoEndpoint = provider.userinfo_endpoint;
@@ -123,7 +120,7 @@ export async function GET(
         let email: string | null = null;
         let username: string | null = null;
 
-        // 5. Try OIDC (ID Token) first
+
         if (tokens.id_token && jwksUri) {
             // ... Existing OIDC Verification Logic ...
             const jwksRes = await fetch(jwksUri, { next: { revalidate: 3600 } });
@@ -142,7 +139,7 @@ export async function GET(
             username = payload.preferred_username || payload.name;
         }
 
-        // 6. Fallback to UserInfo Endpoint (OAuth2)
+
         if (!subject && userInfoEndpoint) {
             const userRes = await fetch(userInfoEndpoint, {
                 headers: {
@@ -187,31 +184,60 @@ export async function GET(
             throw new Error('Could not identify user from ID Token or UserInfo');
         }
 
-        // 7. User Linking / Creation
+
+        const matchField = provider.user_match_field || 'email';
+        const autoRegister = provider.auto_register !== false; // Default to true
+
         let federatedIdentity = getFederatedIdentity(slug, subject);
-        let userId: number;
+        let userId: number | undefined;
 
         if (federatedIdentity) {
+            // Already linked
             userId = federatedIdentity.user_id;
         } else {
-            let existingUser = email ? getUserByEmail(email) : null;
+            // Try to match by configured field
+            let existingUser: any = null;
+
+            if (matchField === 'email' && email) {
+                existingUser = getUserByEmail(email);
+            } else if (matchField === 'username' && username) {
+                existingUser = getUserByUsername(username);
+            }
+            // For 'sub' matching, we only use federated_identities table (checked above)
 
             if (existingUser) {
                 userId = existingUser.id;
-            } else {
+            } else if (autoRegister) {
+                // Auto-register new user
                 const finalUsername = username || email?.split('@')[0] || `user_${subject.substring(0, 8)}`;
                 const dummyHash = '$2a$10$federated_dummy_hash_auth_' + crypto.randomUUID();
 
                 try {
                     const newUser = createUser(finalUsername, dummyHash, email || undefined);
                     userId = newUser.id;
-                } catch (e) {
+                } catch (_e) {
+                    // Username collision, add unique suffix
                     const uniqueName = `${finalUsername}_${crypto.randomUUID().substring(0, 4)}`;
                     const newUser = createUser(uniqueName, dummyHash, email || undefined);
                     userId = newUser.id;
                 }
+            } else {
+                // Auto-register is off and no existing user found
+                return NextResponse.redirect(
+                    new URL(`/login?error=${encodeURIComponent('No account found. Please contact administrator.')}`, request.url)
+                );
             }
-            linkFederatedIdentity(userId, slug, subject, email || undefined);
+
+            // Link the federated identity if we have a userId
+            if (userId) {
+                linkFederatedIdentity(userId, slug, subject, email || undefined);
+            }
+        }
+
+        if (!userId) {
+            return NextResponse.redirect(
+                new URL('/login?error=Authentication+failed', request.url)
+            );
         }
 
         // Create session

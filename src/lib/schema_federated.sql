@@ -12,6 +12,9 @@ CREATE TABLE IF NOT EXISTS auth_providers (
     jwks_uri TEXT,
     scopes TEXT,
     enabled BOOLEAN DEFAULT 1,
+    user_match_field TEXT DEFAULT 'email',
+    auto_register INTEGER DEFAULT 1,
+    auto_launch INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
