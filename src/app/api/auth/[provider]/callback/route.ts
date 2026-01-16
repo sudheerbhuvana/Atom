@@ -218,7 +218,9 @@ export async function GET(
         const session = createSession(userId);
 
         // Build redirect URL with validation
-        const baseUrl = request.nextUrl.origin;
+        // Reuse host and protocol from earlier token exchange (already defined at line 89-91)
+        const baseUrl = `${protocol}://${host}`;
+
         const returnTo = savedState.returnTo;
 
         // Validate and use returnTo if provided, otherwise default to root
