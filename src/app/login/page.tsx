@@ -27,12 +27,12 @@ export default function LoginPage() {
         // Fetch Providers
         fetch('/api/auth/providers')
             .then(res => res.json())
-            .then((data: any) => {
+            .then((data: { name: string; slug: string; auto_launch?: boolean }[]) => {
                 if (Array.isArray(data)) {
                     setProviders(data);
 
                     // Auto-launch if exactly one provider with auto_launch enabled
-                    const autoLaunchProviders = data.filter((p: any) => p.auto_launch);
+                    const autoLaunchProviders = data.filter((p) => p.auto_launch);
                     // Preserve returnTo when auto-launching
                     const returnToParam = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : '';
 
@@ -66,7 +66,7 @@ export default function LoginPage() {
             });
 
         return () => clearTimeout(timeout);
-    }, [router, searchParams]);
+    }, [router, searchParams, returnTo]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

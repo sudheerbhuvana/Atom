@@ -108,7 +108,7 @@ export function updateAuthProvider(slug: string, updates: Partial<AuthProvider>)
     if (!current) return false;
 
     const fields: string[] = [];
-    const values: any[] = [];
+    const values: (string | number | boolean | null)[] = [];
 
     if (updates.name !== undefined) { fields.push('name = ?'); values.push(updates.name); }
     if (updates.issuer !== undefined) { fields.push('issuer = ?'); values.push(updates.issuer); }

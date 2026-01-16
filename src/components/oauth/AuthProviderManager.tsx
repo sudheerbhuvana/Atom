@@ -178,7 +178,7 @@ export default function AuthProviderManager() {
 
             toast.success('Provider deleted');
             fetchProviders();
-        } catch (_error) {
+        } catch {
             toast.error('Failed to delete provider');
         }
     };

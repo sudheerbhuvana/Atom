@@ -56,7 +56,7 @@ export async function fetchOIDCConfiguration(issuer: string): Promise<OIDCProvid
                     ...KNOWN_PROVIDERS[domain]
                 } as OIDCProviderMetadata;
             }
-        } catch (e) {
+        } catch {
             // Invalid URL passed
         }
 

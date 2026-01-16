@@ -126,16 +126,7 @@ export default function SettingsPage() {
         setActiveModal(null);
     };
 
-    const handleDeleteAllServices = () => {
-        if (!config) return;
-        toast('Delete ALL applications?', {
-            action: {
-                label: 'Delete',
-                onClick: () => updateConfig({ ...config, services: [] })
-            },
-            cancel: { label: 'Cancel', onClick: () => { } }
-        });
-    };
+    // handleDeleteAllServices removed (unused)
 
     // Adapting Links to Service interface for the EditModal
     const linkToService = (l: AppLink): Service => ({
@@ -180,16 +171,7 @@ export default function SettingsPage() {
         });
         setActiveModal(null);
     };
-    const handleDeleteAllLinks = () => {
-        if (!config) return;
-        toast('Delete ALL bookmarks?', {
-            action: {
-                label: 'Delete',
-                onClick: () => updateConfig({ ...config, links: [] })
-            },
-            cancel: { label: 'Cancel', onClick: () => { } }
-        });
-    };
+    // handleDeleteAllLinks removed (unused)
 
     const handleExport = () => {
         if (!config) return;
@@ -476,7 +458,7 @@ export default function SettingsPage() {
                                 <Download size={16} /> Download DB
                             </button>
                             <button onClick={() => {
-                                config && setConfigJson(JSON.stringify(config, null, 2));
+                                if (config) setConfigJson(JSON.stringify(config, null, 2));
                                 setActiveModal('config');
                             }} className={styles.btnPrimary}>
                                 <Code size={16} /> Edit Config

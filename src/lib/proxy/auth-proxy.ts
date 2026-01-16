@@ -149,7 +149,7 @@ export async function proxyRequest(
             method: request.method,
             headers: headers,
             body: request.body,
-            // @ts-ignore
+            // @ts-expect-error - duplex is required for streaming bodies in Node environment
             duplex: 'half', // Required for streaming request bodies
         });
 

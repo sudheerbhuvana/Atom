@@ -10,7 +10,6 @@ import {
     updateOAuthClient,
     getOAuthClientByClientId
 } from '@/lib/db-oauth';
-import crypto from 'crypto';
 import { SUPPORTED_SCOPES } from '@/lib/oauth/types';
 import { getConfig, saveConfig } from '@/lib/config';
 import { Service } from '@/types';
@@ -93,7 +92,7 @@ export async function GET(request: NextRequest) {
 
                         config.services.push(newService);
                         configChanged = true;
-                    } catch (e) {
+                    } catch {
                         // Skip invalid URLs
                     }
                 }

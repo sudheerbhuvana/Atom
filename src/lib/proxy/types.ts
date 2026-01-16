@@ -19,7 +19,7 @@ export interface ProxyRequest {
     method: string;
     path: string;
     headers: Record<string, string>;
-    body?: any;
+    body?: unknown;
 }
 
 export interface AuthInfo {

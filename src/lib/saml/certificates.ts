@@ -52,7 +52,7 @@ ${Buffer.from(publicKey).toString('base64')}
  * This creates a valid certificate for SAML signing
  */
 export function generateProperSAMLCertificate(): { certificate: string; privateKey: string } {
-    const execSync = require('child_process').execSync;
+    const { execSync } = require('child_process');
 
     try {
         // Generate private key

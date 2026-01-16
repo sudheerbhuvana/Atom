@@ -202,12 +202,13 @@ export interface Session {
 }
 
 // Helper to parse user tags and role
-function parseUser(user: any): User | undefined {
+function parseUser(user: unknown): User | undefined {
     if (!user) return undefined;
+    const u = user as { tags?: string; role?: 'admin' | 'member' } & Omit<User, 'tags' | 'role'>;
     return {
-        ...user,
-        tags: user.tags ? user.tags.split(',') : [],
-        role: user.role || 'member'
+        ...u,
+        tags: u.tags ? u.tags.split(',') : [],
+        role: u.role || 'member'
     };
 }
 
@@ -259,21 +260,27 @@ export function updateUserTags(userId: number, tags: string[]): void {
 
 export function getAllUsers(): User[] {
     const users = getStmt('SELECT id, username, password_hash, email, tags, role, created_at FROM users').all();
-    return users.map((u: any) => ({
-        ...u,
-        tags: u.tags ? u.tags.split(',') : [],
-        role: u.role || 'member'
-    }));
+    return users.map((u: unknown) => {
+        const user = u as User & { tags: string };
+        return {
+            ...user,
+            tags: user.tags ? user.tags.split(',') : [],
+            role: user.role || 'member'
+        };
+    });
 }
 
 // Safe version that doesn't return password hashes
 export function getAllUsersSafe(): Omit<User, 'password_hash'>[] {
     const users = getStmt('SELECT id, username, email, tags, role, created_at FROM users').all();
-    return users.map((u: any) => ({
-        ...u,
-        tags: u.tags ? u.tags.split(',') : [],
-        role: u.role || 'member'
-    }));
+    return users.map((u: unknown) => {
+        const user = u as User & { tags: string };
+        return {
+            ...user,
+            tags: user.tags ? user.tags.split(',') : [],
+            role: user.role || 'member'
+        };
+    });
 }
 
 export function deleteUser(id: number): void {

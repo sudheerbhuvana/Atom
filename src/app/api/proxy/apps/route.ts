@@ -11,7 +11,7 @@ import {
 /**
  * GET /api/proxy/apps - List all protected applications
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
     // Require authentication
     const user = await getCurrentUser();
     if (!user) {

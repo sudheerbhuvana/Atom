@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthProviderBySlug, linkFederatedIdentity, getFederatedIdentity } from '@/lib/auth-providers';
-import { createUser, getUserByUsername, createSession, getUserById } from '@/lib/db'; // getUserById, getUserByEmail if exists?
+import { createUser, getUserByUsername, createSession } from '@/lib/db'; // getUserById removed
 import { fetchOIDCConfiguration } from '@/lib/oidc/client-discovery';
 import jose from 'node-jose';
 import { cookies } from 'next/headers';
@@ -10,7 +10,7 @@ import db from '@/lib/db';
 
 function getUserByEmail(email: string) {
     const stmt = db.prepare('SELECT * FROM users WHERE email = ?');
-    return stmt.get(email) as any;
+    return stmt.get(email) as { id: number; email: string; username: string } | undefined;
 }
 
 export const dynamic = 'force-dynamic';
@@ -168,7 +168,7 @@ export async function GET(
                         if (emailRes.ok) {
                             const emails = await emailRes.json();
                             // Find primary verified email
-                            const primaryEmail = emails.find((e: any) => e.primary && e.verified);
+                            const primaryEmail = emails.find((e: { primary: boolean; verified: boolean; email: string }) => e.primary && e.verified);
                             if (primaryEmail) {
                                 email = primaryEmail.email;
                             }
@@ -188,7 +188,7 @@ export async function GET(
         const matchField = provider.user_match_field || 'email';
         const autoRegister = provider.auto_register !== false; // Default to true
 
-        let federatedIdentity = getFederatedIdentity(slug, subject);
+        const federatedIdentity = getFederatedIdentity(slug, subject);
         let userId: number | undefined;
 
         if (federatedIdentity) {
@@ -196,7 +196,7 @@ export async function GET(
             userId = federatedIdentity.user_id;
         } else {
             // Try to match by configured field
-            let existingUser: any = null;
+            let existingUser: { id: number } | null | undefined = null;
 
             if (matchField === 'email' && email) {
                 existingUser = getUserByEmail(email);
@@ -215,7 +215,7 @@ export async function GET(
                 try {
                     const newUser = createUser(finalUsername, dummyHash, email || undefined);
                     userId = newUser.id;
-                } catch (_e) {
+                } catch {
                     // Username collision, add unique suffix
                     const uniqueName = `${finalUsername}_${crypto.randomUUID().substring(0, 4)}`;
                     const newUser = createUser(uniqueName, dummyHash, email || undefined);

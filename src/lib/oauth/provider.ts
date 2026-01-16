@@ -404,7 +404,9 @@ function handleAuthorizationCodeGrant(client: OAuthClient, params: TokenParams):
 
     if (isOIDC) {
         // Use JWT tokens for OIDC flow
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const { generateOIDCTokenResponse } = require('./oidc-tokens');
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const { getUserById } = require('../db');
 
         const user = getUserById(authCode.user_id);
