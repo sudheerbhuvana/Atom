@@ -1,10 +1,12 @@
 import db from '../db';
 import type { ProtectedApplication } from './types';
 
-// Helper to get or create prepared statement
-const preparedStmts = new Map<string, any>();
+import Database from 'better-sqlite3';
 
-function getStmt(sql: string): any {
+// Helper to get or create prepared statement
+const preparedStmts = new Map<string, Database.Statement>();
+
+function getStmt(sql: string): Database.Statement {
     if (!preparedStmts.has(sql)) {
         preparedStmts.set(sql, db.prepare(sql));
     }
@@ -60,8 +62,24 @@ export function createProtectedApplication(
 /**
  * Get Protected Application by slug
  */
+interface RawProtectedApplication {
+    id: number;
+    name: string;
+    slug: string;
+    backend_url: string;
+    require_auth: number; // SQLite boolean
+    allowed_users: string | null; // SQLite JSON
+    inject_headers: number; // SQLite boolean
+    strip_auth_header: number; // SQLite boolean
+    created_at: string;
+    updated_at: string;
+}
+
+/**
+ * Get Protected Application by slug
+ */
 export function getProtectedApplicationBySlug(slug: string): ProtectedApplication | undefined {
-    const row = getStmt('SELECT * FROM protected_applications WHERE slug = ?').get(slug) as any;
+    const row = getStmt('SELECT * FROM protected_applications WHERE slug = ?').get(slug) as RawProtectedApplication | undefined;
     if (!row) return undefined;
 
     return {
@@ -77,7 +95,7 @@ export function getProtectedApplicationBySlug(slug: string): ProtectedApplicatio
  * Get Protected Application by ID
  */
 export function getProtectedApplicationById(id: number): ProtectedApplication | undefined {
-    const row = getStmt('SELECT * FROM protected_applications WHERE id = ?').get(id) as any;
+    const row = getStmt('SELECT * FROM protected_applications WHERE id = ?').get(id) as RawProtectedApplication | undefined;
     if (!row) return undefined;
 
     return {
@@ -93,7 +111,7 @@ export function getProtectedApplicationById(id: number): ProtectedApplication | 
  * List all Protected Applications
  */
 export function listProtectedApplications(): ProtectedApplication[] {
-    const rows = getStmt('SELECT * FROM protected_applications ORDER BY created_at DESC').all() as any[];
+    const rows = getStmt('SELECT * FROM protected_applications ORDER BY created_at DESC').all() as RawProtectedApplication[];
     return rows.map(row => ({
         ...row,
         require_auth: row.require_auth === 1,

@@ -66,12 +66,27 @@ export function createOAuthClient(
     return getOAuthClientByClientId(client_id)!;
 }
 
+interface RawOAuthClient {
+    id: number;
+    client_id: string;
+    client_secret: string;
+    name: string;
+    description: string | null;
+    redirect_uris: string;
+    allowed_scopes: string;
+    grant_types: string;
+    is_confidential: number;
+    created_at: string;
+    updated_at: string;
+}
+
 export function getOAuthClientByClientId(client_id: string): OAuthClient | undefined {
-    const row = getStmt('SELECT * FROM oauth_clients WHERE client_id = ?').get(client_id) as any;
+    const row = getStmt('SELECT * FROM oauth_clients WHERE client_id = ?').get(client_id) as RawOAuthClient | undefined;
     if (!row) return undefined;
 
     return {
         ...row,
+        description: row.description || undefined,
         redirect_uris: parseJsonField(row.redirect_uris),
         allowed_scopes: parseJsonField(row.allowed_scopes),
         grant_types: parseJsonField(row.grant_types),
@@ -80,11 +95,12 @@ export function getOAuthClientByClientId(client_id: string): OAuthClient | undef
 }
 
 export function getOAuthClientById(id: number): OAuthClient | undefined {
-    const row = getStmt('SELECT * FROM oauth_clients WHERE id = ?').get(id) as any;
+    const row = getStmt('SELECT * FROM oauth_clients WHERE id = ?').get(id) as RawOAuthClient | undefined;
     if (!row) return undefined;
 
     return {
         ...row,
+        description: row.description || undefined,
         redirect_uris: parseJsonField(row.redirect_uris),
         allowed_scopes: parseJsonField(row.allowed_scopes),
         grant_types: parseJsonField(row.grant_types),
@@ -93,9 +109,10 @@ export function getOAuthClientById(id: number): OAuthClient | undefined {
 }
 
 export function listOAuthClients(): OAuthClient[] {
-    const rows = getStmt('SELECT * FROM oauth_clients ORDER BY created_at DESC').all() as any[];
+    const rows = getStmt('SELECT * FROM oauth_clients ORDER BY created_at DESC').all() as RawOAuthClient[];
     return rows.map(row => ({
         ...row,
+        description: row.description || undefined,
         redirect_uris: parseJsonField(row.redirect_uris),
         allowed_scopes: parseJsonField(row.allowed_scopes),
         grant_types: parseJsonField(row.grant_types),
@@ -107,7 +124,7 @@ export function updateOAuthClient(
     client_id: string,
     updates: {
         name?: string;
-        description?: string;
+        description?: string; // Optional in interface, nullable in DB
         redirect_uris?: string[];
         allowed_scopes?: string[];
         grant_types?: string[];
@@ -191,12 +208,30 @@ export function createAuthorizationCode(
     return getAuthorizationCode(code)!;
 }
 
+interface RawAuthorizationCode {
+    id: number;
+    code: string;
+    client_id: string;
+    user_id: number;
+    redirect_uri: string;
+    scopes: string;
+    code_challenge: string | null;
+    code_challenge_method: 'S256' | 'plain' | null;
+    nonce: string | null;
+    expires_at: string;
+    created_at: string;
+    used: number;
+}
+
 export function getAuthorizationCode(code: string): OAuthAuthorizationCode | undefined {
-    const row = getStmt('SELECT * FROM oauth_authorization_codes WHERE code = ?').get(code) as any;
+    const row = getStmt('SELECT * FROM oauth_authorization_codes WHERE code = ?').get(code) as RawAuthorizationCode | undefined;
     if (!row) return undefined;
 
     return {
         ...row,
+        code_challenge: row.code_challenge || undefined,
+        code_challenge_method: row.code_challenge_method || undefined,
+        nonce: row.nonce || undefined,
         scopes: parseJsonField(row.scopes),
         used: row.used === 1,
     };
@@ -243,8 +278,19 @@ export function createAccessToken(
     return getAccessToken(token)!;
 }
 
+interface RawAccessToken {
+    id: number;
+    token: string;
+    client_id: string;
+    user_id: number | null;
+    scopes: string;
+    expires_at: string;
+    revoked: number;
+    created_at: string;
+}
+
 export function getAccessToken(token: string): OAuthAccessToken | undefined {
-    const row = getStmt('SELECT * FROM oauth_access_tokens WHERE token = ? AND revoked = 0').get(token) as any;
+    const row = getStmt('SELECT * FROM oauth_access_tokens WHERE token = ? AND revoked = 0').get(token) as RawAccessToken | undefined;
     if (!row) return undefined;
 
     // Check if expired
@@ -299,8 +345,20 @@ export function createRefreshToken(
     return getRefreshToken(token)!;
 }
 
+interface RawRefreshToken {
+    id: number;
+    token: string;
+    access_token_id: number;
+    client_id: string;
+    user_id: number;
+    scopes: string;
+    expires_at: string;
+    revoked: number;
+    created_at: string;
+}
+
 export function getRefreshToken(token: string): OAuthRefreshToken | undefined {
-    const row = getStmt('SELECT * FROM oauth_refresh_tokens WHERE token = ? AND revoked = 0').get(token) as any;
+    const row = getStmt('SELECT * FROM oauth_refresh_tokens WHERE token = ? AND revoked = 0').get(token) as RawRefreshToken | undefined;
     if (!row) return undefined;
 
     // Check if expired
@@ -345,9 +403,18 @@ export function saveUserConsent(
     return getUserConsent(user_id, client_id)!;
 }
 
+interface RawUserConsent {
+    id: number;
+    user_id: number;
+    client_id: string;
+    scopes: string;
+    granted_at: string;
+    updated_at: string;
+}
+
 export function getUserConsent(user_id: number, client_id: string): OAuthUserConsent | undefined {
     const row = getStmt('SELECT * FROM oauth_user_consents WHERE user_id = ? AND client_id = ?')
-        .get(user_id, client_id) as any;
+        .get(user_id, client_id) as RawUserConsent | undefined;
     if (!row) return undefined;
 
     return {
@@ -358,7 +425,7 @@ export function getUserConsent(user_id: number, client_id: string): OAuthUserCon
 
 export function listUserConsents(user_id: number): OAuthUserConsent[] {
     const rows = getStmt('SELECT * FROM oauth_user_consents WHERE user_id = ? ORDER BY updated_at DESC')
-        .all(user_id) as any[];
+        .all(user_id) as RawUserConsent[];
     return rows.map(row => ({
         ...row,
         scopes: parseJsonField(row.scopes),

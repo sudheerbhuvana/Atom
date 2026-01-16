@@ -11,7 +11,6 @@ import {
     revokeAccessToken,
     revokeRefreshToken,
     saveUserConsent,
-    getUserConsent,
 } from '../db-oauth';
 import type { OAuthClient } from './types';
 

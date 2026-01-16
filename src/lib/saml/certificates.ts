@@ -51,8 +51,9 @@ ${Buffer.from(publicKey).toString('base64')}
  * Generate proper self-signed X.509 certificate using openssl command
  * This creates a valid certificate for SAML signing
  */
+import { execSync } from 'child_process';
+
 export function generateProperSAMLCertificate(): { certificate: string; privateKey: string } {
-    const { execSync } = require('child_process');
 
     try {
         // Generate private key

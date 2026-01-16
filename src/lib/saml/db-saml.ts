@@ -1,10 +1,12 @@
 import db from '../db';
 import type { SAMLServiceProvider } from './types';
 
-// Helper to get or create prepared statement
-const preparedStmts = new Map<string, any>();
+import Database from 'better-sqlite3';
 
-function getStmt(sql: string): any {
+// Helper to get or create prepared statement
+const preparedStmts = new Map<string, Database.Statement>();
+
+function getStmt(sql: string): Database.Statement {
     if (!preparedStmts.has(sql)) {
         preparedStmts.set(sql, db.prepare(sql));
     }
@@ -64,12 +66,33 @@ export function createSAMLServiceProvider(
 /**
  * Get SAML Service Provider by Entity ID
  */
+interface RawSAMLServiceProvider {
+    id: number;
+    entity_id: string;
+    name: string;
+    description: string | null;
+    acs_url: string;
+    metadata_url: string | null;
+    sp_certificate: string | null;
+    attribute_mapping: string; // SQLite JSON
+    sign_assertions: number; // SQLite boolean
+    encrypt_assertions: number; // SQLite boolean
+    created_at: string;
+    updated_at: string;
+}
+
+/**
+ * Get SAML Service Provider by Entity ID
+ */
 export function getSAMLServiceProviderByEntityId(entity_id: string): SAMLServiceProvider | undefined {
-    const row = getStmt('SELECT * FROM saml_service_providers WHERE entity_id = ?').get(entity_id) as any;
+    const row = getStmt('SELECT * FROM saml_service_providers WHERE entity_id = ?').get(entity_id) as RawSAMLServiceProvider | undefined;
     if (!row) return undefined;
 
     return {
         ...row,
+        description: row.description || undefined,
+        metadata_url: row.metadata_url || undefined,
+        sp_certificate: row.sp_certificate || undefined,
         attribute_mapping: parseJsonField(row.attribute_mapping),
         sign_assertions: row.sign_assertions === 1,
         encrypt_assertions: row.encrypt_assertions === 1,
@@ -80,11 +103,14 @@ export function getSAMLServiceProviderByEntityId(entity_id: string): SAMLService
  * Get SAML Service Provider by ID
  */
 export function getSAMLServiceProviderById(id: number): SAMLServiceProvider | undefined {
-    const row = getStmt('SELECT * FROM saml_service_providers WHERE id = ?').get(id) as any;
+    const row = getStmt('SELECT * FROM saml_service_providers WHERE id = ?').get(id) as RawSAMLServiceProvider | undefined;
     if (!row) return undefined;
 
     return {
         ...row,
+        description: row.description || undefined,
+        metadata_url: row.metadata_url || undefined,
+        sp_certificate: row.sp_certificate || undefined,
         attribute_mapping: parseJsonField(row.attribute_mapping),
         sign_assertions: row.sign_assertions === 1,
         encrypt_assertions: row.encrypt_assertions === 1,
@@ -95,9 +121,12 @@ export function getSAMLServiceProviderById(id: number): SAMLServiceProvider | un
  * List all SAML Service Providers
  */
 export function listSAMLServiceProviders(): SAMLServiceProvider[] {
-    const rows = getStmt('SELECT * FROM saml_service_providers ORDER BY created_at DESC').all() as any[];
+    const rows = getStmt('SELECT * FROM saml_service_providers ORDER BY created_at DESC').all() as RawSAMLServiceProvider[];
     return rows.map(row => ({
         ...row,
+        description: row.description || undefined,
+        metadata_url: row.metadata_url || undefined,
+        sp_certificate: row.sp_certificate || undefined,
         attribute_mapping: parseJsonField(row.attribute_mapping),
         sign_assertions: row.sign_assertions === 1,
         encrypt_assertions: row.encrypt_assertions === 1,

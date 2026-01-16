@@ -62,6 +62,7 @@ export default function CustomWidget({
         let html = '';
 
         // Helper to replace variables in a string
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const replaceVars = (tmpl: string, context: any) => {
             return tmpl.replace(/\{\{([^}]+)\}\}/g, (_, path) => {
                 const keys = path.trim().split('.');
