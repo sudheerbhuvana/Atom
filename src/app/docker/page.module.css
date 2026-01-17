@@ -113,14 +113,26 @@
     font-size: 0.85rem;
 }
 
+.networkCell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
 .ports {
     font-family: monospace;
     font-size: 0.85rem;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     white-space: normal;
     word-break: break-all;
-    max-width: 300px;
-    line-height: 1.4;
+    max-width: 250px;
+    line-height: 1.2;
+}
+
+.ipAddress {
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: var(--text-muted);
 }
 
 .usageBar {

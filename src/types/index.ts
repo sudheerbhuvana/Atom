@@ -81,4 +81,5 @@ export interface DockerContainer {
     memory?: string;
     memPercent?: number;
     ports: string;
+    privateIp?: string;
 }

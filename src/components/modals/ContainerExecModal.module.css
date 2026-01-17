@@ -1,0 +1,213 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeIn 0.2s ease;
+}
+
+.overlay::selection {
+    background: transparent !important;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.modal {
+    background: #1e1e1e;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    width: 90vw;
+    max-width: 1200px;
+    height: 85vh;
+    display: flex;
+    flex-direction: column;
+    animation: zoomIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    position: relative;
+    pointer-events: auto;
+    user-select: none;
+    /* Prevent accidental UI selection */
+}
+
+@keyframes zoomIn {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background: #1e1e1e;
+    /* Solid mask */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    user-select: none;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 100;
+    /* Priority 1 mask */
+}
+
+.headerInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.statusDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 8px #22c55e;
+}
+
+.title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    pointer-events: none;
+    /* Make unselectable/unclickable */
+}
+
+.subtitle {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-family: monospace;
+    opacity: 0.8;
+    pointer-events: none;
+}
+
+.closeBtn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    transition: all 0.2s;
+}
+
+.closeBtn:hover {
+    background: #ef4444;
+    color: white;
+    border-color: #ef4444;
+}
+
+.error {
+    padding: 1rem 1.5rem;
+    background: rgba(239, 68, 68, 0.1);
+    border-bottom: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.terminalWrapper {
+    flex: 1;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    background: #1e1e1e;
+    scrollbar-width: thin;
+    scrollbar-color: #555 #2a2a2a;
+    position: relative;
+    /* Scope child layers */
+    z-index: 1;
+}
+
+.terminalWrapper::-webkit-scrollbar {
+    width: 8px;
+}
+
+.terminalWrapper::-webkit-scrollbar-track {
+    background: #2a2a2a;
+}
+
+.terminalWrapper::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+
+.terminal {
+    width: 100%;
+    padding: 1rem;
+    background: #1e1e1e;
+    height: auto;
+    flex-shrink: 0;
+    overflow: hidden;
+    position: relative;
+    user-select: text;
+    contain: paint;
+    outline: none !important;
+    /* Nuke focus rings */
+    box-shadow: none !important;
+}
+
+.terminal :global(.xterm),
+.terminal :global(.xterm-screen),
+.terminal :global(.xterm-rows) {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.terminal :global(.xterm) {
+    height: auto;
+}
+
+.terminal :global(.xterm-viewport) {
+    display: none !important;
+}
+
+/* Neutralize the specific xterm DOM renderer highlights */
+.terminal :global(.xterm-dom-renderer-owner-1),
+.terminal :global(.xterm-dom-renderer-owner-1) * {
+    user-select: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.terminal :global(.xterm-dom-renderer-owner-1)::selection,
+.terminal :global(.xterm-dom-renderer-owner-1) *::selection {
+    background: transparent !important;
+}
+
+/* Move helper elements far away to prevent ghost highlighting/focus rings */
+.terminal :global(.xterm-helper-textarea),
+.terminal :global(.xterm-decoration-container) {
+    position: absolute !important;
+    top: -9999px !important;
+    left: -9999px !important;
+    opacity: 0 !important;
+    z-index: -1 !important;
+    pointer-events: none !important;
+}
+
+.terminal :global(.xterm-selection),
+.terminal :global(.xterm-cursor-layer) {
+    z-index: 3 !important;
+}

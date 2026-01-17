@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Terminal, Play, Square, RotateCw } from 'lucide-react';
+import { ArrowLeft, Terminal, Play, Square, RotateCw, Globe, Code } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { DockerContainer } from '@/types';
 import ContainerLogsModal from '@/components/modals/ContainerLogsModal';
+import ContainerExecModal from '@/components/modals/ContainerExecModal';
+import AddProxyHostModal from '@/components/modals/AddProxyHostModal';
 import styles from './page.module.css';
 
 export default function DockerDashboard() {
@@ -14,6 +16,8 @@ export default function DockerDashboard() {
     const [error, setError] = useState<string | null>(null);
     const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
     const [viewingLogsFor, setViewingLogsFor] = useState<{ id: string, name: string } | null>(null);
+    const [viewingTerminalFor, setViewingTerminalFor] = useState<{ id: string, name: string } | null>(null);
+    const [showProxyModal, setShowProxyModal] = useState(false);
     const [processing, setProcessing] = useState<string | null>(null);
 
     const fetchContainers = async () => {
@@ -119,9 +123,14 @@ export default function DockerDashboard() {
                         )}
                     </div>
                 </div>
-                <Link href="/" className={styles.backBtn}>
-                    <ArrowLeft size={16} /> Back to Dashboard
-                </Link>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <button className={styles.backBtn} onClick={() => setShowProxyModal(true)}>
+                        <Globe size={16} /> Reverse Proxy
+                    </button>
+                    <Link href="/" className={styles.backBtn}>
+                        <ArrowLeft size={16} /> Back to Dashboard
+                    </Link>
+                </div>
             </header>
 
             {error && (
@@ -152,14 +161,14 @@ export default function DockerDashboard() {
                                 <th>Status</th>
                                 <th>CPU</th>
                                 <th>Memory</th>
-                                <th>Ports</th>
+                                <th>Network</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading && containers.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6}>
+                                    <td colSpan={7}>
                                         <div className={styles.loading}>Loading containers...</div>
                                     </td>
                                 </tr>
@@ -200,21 +209,38 @@ export default function DockerDashboard() {
                                             />
                                         </div>
                                     </td>
-                                    <td className={styles.ports}>
-                                        {container.ports || '-'}
+                                    <td>
+                                        <div className={styles.networkCell}>
+                                            <div className={styles.ports}>
+                                                {container.ports || '-'}
+                                            </div>
+                                            <div className={styles.ipAddress}>
+                                                {container.privateIp || '-'}
+                                            </div>
+                                        </div>
                                     </td>
                                     <td>
                                         <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                            {/* Logs Button - Only if running */}
+                                            {/* Terminal & Logs Buttons - Only if running */}
                                             {container.state === 'running' && (
-                                                <button
-                                                    className={styles.pactionBtn}
-                                                    onClick={() => setViewingLogsFor({ id: container.id, name: container.name })}
-                                                    title="View Logs"
-                                                    disabled={!!processing}
-                                                >
-                                                    <Terminal size={16} />
-                                                </button>
+                                                <>
+                                                    <button
+                                                        className={styles.pactionBtn}
+                                                        onClick={() => setViewingTerminalFor({ id: container.id, name: container.name })}
+                                                        title="Open Terminal"
+                                                        disabled={!!processing}
+                                                    >
+                                                        <Code size={16} />
+                                                    </button>
+                                                    <button
+                                                        className={styles.pactionBtn}
+                                                        onClick={() => setViewingLogsFor({ id: container.id, name: container.name })}
+                                                        title="View Logs"
+                                                        disabled={!!processing}
+                                                    >
+                                                        <Terminal size={16} />
+                                                    </button>
+                                                </>
                                             )}
 
                                             {/* Power Actions */}
@@ -275,6 +301,20 @@ export default function DockerDashboard() {
                     containerId={viewingLogsFor.id}
                     containerName={viewingLogsFor.name}
                     onClose={() => setViewingLogsFor(null)}
+                />
+            )}
+
+            {viewingTerminalFor && (
+                <ContainerExecModal
+                    containerId={viewingTerminalFor.id}
+                    containerName={viewingTerminalFor.name}
+                    onClose={() => setViewingTerminalFor(null)}
+                />
+            )}
+
+            {showProxyModal && (
+                <AddProxyHostModal
+                    onClose={() => setShowProxyModal(false)}
                 />
             )}
         </div>

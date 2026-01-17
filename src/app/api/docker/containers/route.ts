@@ -62,13 +62,24 @@ export async function GET() {
                     .map((p: { PublicPort?: number; PrivatePort: number }) => `${p.PublicPort}:${p.PrivatePort}`)
             );
 
-            const simpleContainer: { id: string; name: string; image: string; state: string; status: string; ports: string; cpu?: number; memPercent?: number; memory?: string } = {
+            // Extract private IP from NetworkSettings
+            const networks = (container as unknown as { NetworkSettings?: { Networks?: Record<string, { IPAddress?: string }> } }).NetworkSettings?.Networks;
+            let privateIp = '-';
+            if (networks) {
+                const networkKeys = Object.keys(networks);
+                if (networkKeys.length > 0) {
+                    privateIp = networks[networkKeys[0]]?.IPAddress || '-';
+                }
+            }
+
+            const simpleContainer: { id: string; name: string; image: string; state: string; status: string; ports: string; privateIp: string; cpu?: number; memPercent?: number; memory?: string } = {
                 id: container.Id.substring(0, 12),
                 name: container.Names[0].replace('/', ''),
                 image: container.Image.length > 40 ? container.Image.substring(0, 20) + '...' : container.Image,
                 state: container.State,
                 status: container.Status,
-                ports: Array.from(portsList).join(', ')
+                ports: Array.from(portsList).join(', '),
+                privateIp
             };
 
             if (container.State === 'running') {
