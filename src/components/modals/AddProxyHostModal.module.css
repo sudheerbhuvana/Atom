@@ -114,7 +114,7 @@
     gap: 0.5rem;
 }
 
-.inputGroup:nth-child(3) {
+.inputGroup:nth-child(4) {
     /* Port */
     flex: 0 0 100px;
 }

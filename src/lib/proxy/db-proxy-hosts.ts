@@ -3,6 +3,7 @@ import db from '../db';
 export interface ProxyHost {
     id: string;
     domain: string;
+    targetHost: string;
     targetPort: number;
     ssl: boolean;
     letsencrypt: boolean;
@@ -25,14 +26,14 @@ export function listProxyHosts(): ProxyHost[] {
 /**
  * Create Proxy Host
  */
-export function createProxyHost(domain: string, targetPort: number, ssl: boolean, letsencrypt = false): ProxyHost {
+export function createProxyHost(domain: string, targetHost: string, targetPort: number, ssl: boolean, letsencrypt = false): ProxyHost {
     const id = crypto.randomUUID();
     const stmt = db.prepare(`
-        INSERT INTO proxy_hosts (id, domain, targetPort, ssl, letsencrypt)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO proxy_hosts (id, domain, targetHost, targetPort, ssl, letsencrypt)
+        VALUES (?, ?, ?, ?, ?, ?)
     `);
 
-    stmt.run(id, domain, targetPort, ssl ? 1 : 0, letsencrypt ? 1 : 0);
+    stmt.run(id, domain, targetHost, targetPort, ssl ? 1 : 0, letsencrypt ? 1 : 0);
 
     return getProxyHostById(id)!;
 }

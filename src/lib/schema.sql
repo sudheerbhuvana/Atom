@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS config (
 CREATE TABLE IF NOT EXISTS proxy_hosts (
     id TEXT PRIMARY KEY,
     domain TEXT UNIQUE NOT NULL,
+    targetHost TEXT NOT NULL DEFAULT 'host.docker.internal',
     targetPort INTEGER NOT NULL,
     ssl INTEGER DEFAULT 0,
     letsencrypt INTEGER DEFAULT 0,

@@ -26,13 +26,19 @@ export async function POST(request: Request) {
     }
 
     try {
-        const { domain, targetPort, ssl, letsencrypt } = await request.json();
+        const { domain, targetHost, targetPort, ssl, letsencrypt } = await request.json();
 
         if (!domain || !targetPort) {
             return NextResponse.json({ error: 'Missing domain or target port' }, { status: 400 });
         }
 
-        const newHost = createProxyHost(domain, targetPort, !!ssl, !!letsencrypt);
+        const newHost = createProxyHost(
+            domain,
+            targetHost || 'host.docker.internal',
+            parseInt(targetPort, 10),
+            !!ssl,
+            !!letsencrypt
+        );
         return NextResponse.json(newHost);
     } catch (error) {
         console.error('Failed to create proxy host:', error);

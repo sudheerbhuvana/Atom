@@ -9,6 +9,7 @@ import styles from './AddProxyHostModal.module.css';
 interface ProxyHost {
     id?: string;
     domain: string;
+    targetHost: string;
     targetPort: number;
     ssl?: boolean;
     letsencrypt?: boolean;
@@ -24,6 +25,7 @@ export default function AddProxyHostModal({ onClose }: Props) {
     const [selectedContainerId, setSelectedContainerId] = useState<string>('');
     const [loading, setLoading] = useState(true);
     const [domain, setDomain] = useState('');
+    const [targetHost, setTargetHost] = useState('host.docker.internal');
     const [targetPort, setTargetPort] = useState('');
     const [ssl, setSsl] = useState(false);
     const [submitting, setSubmitting] = useState(false);
@@ -71,10 +73,14 @@ export default function AddProxyHostModal({ onClose }: Props) {
                 if (firstPortMatch) {
                     setTargetPort(firstPortMatch[1]);
                 } else if (container.ports) {
-                    const port = container.ports.split(',')[0].split(':')[1];
-                    if (port) setTargetPort(port);
                 }
+
+                setTargetHost(container.name);
+            } else {
+                setTargetHost('host.docker.internal');
             }
+        } else {
+            setTargetHost('host.docker.internal');
         }
     };
 
@@ -88,9 +94,10 @@ export default function AddProxyHostModal({ onClose }: Props) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     domain,
+                    targetHost,
                     targetPort: parseInt(targetPort, 10),
                     ssl,
-                    letsencrypt: ssl // SSL implies Let's Encrypt in this simplified UI
+                    letsencrypt: ssl
                 })
             });
 
@@ -102,6 +109,7 @@ export default function AddProxyHostModal({ onClose }: Props) {
 
             toast.success(`Proxy host added: ${domain}`);
             setDomain('');
+            setTargetHost('host.docker.internal');
             setTargetPort('');
             setSsl(false);
             setSelectedContainerId('');
@@ -182,6 +190,17 @@ export default function AddProxyHostModal({ onClose }: Props) {
                             </div>
 
                             <div className={styles.inputGroup}>
+                                <label>Target Host</label>
+                                <input
+                                    type="text"
+                                    value={targetHost}
+                                    onChange={(e) => setTargetHost(e.target.value)}
+                                    placeholder="host.docker.internal"
+                                    required
+                                />
+                            </div>
+
+                            <div className={styles.inputGroup}>
                                 <label>Target Port</label>
                                 <input
                                     type="number"
@@ -214,7 +233,7 @@ export default function AddProxyHostModal({ onClose }: Props) {
                         {selectedContainerId && (
                             <div className={styles.hint}>
                                 <Link size={12} />
-                                Target will be set to <code>host.docker.internal:{targetPort}</code>
+                                Target will be set to <code>{targetHost}:{targetPort}</code>
                             </div>
                         )}
                     </form>
@@ -237,7 +256,7 @@ export default function AddProxyHostModal({ onClose }: Props) {
                                             </div>
                                             <div className={styles.hostTarget}>
                                                 <Link size={12} />
-                                                Forward to: <code>host.docker.internal:{host.targetPort}</code>
+                                                Forward to: <code>{host.targetHost}:{host.targetPort}</code>
                                             </div>
                                         </div>
                                         <button
