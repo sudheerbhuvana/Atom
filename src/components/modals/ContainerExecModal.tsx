@@ -14,7 +14,7 @@ interface Props {
 export default function ContainerExecModal({ containerId, containerName, onClose }: Props) {
     const terminalRef = useRef<HTMLDivElement>(null);
     const [error, setError] = useState<string | null>(null);
-    const xtermRef = useRef<any>(null);
+    const xtermRef = useRef<{ term: any; fitAddon: any } | null>(null);
 
     // Ensure we only render the portal on the client
     const [mounted, setMounted] = useState(false);
@@ -66,7 +66,7 @@ export default function ContainerExecModal({ containerId, containerName, onClose
                         const targetRows = Math.max(dims.rows, currentBufferHeight + 3);
                         term.resize(Math.floor(dims.cols), Math.floor(targetRows));
                     }
-                } catch (e) {
+                } catch {
                     // Silently fail if fit is not possible
                 }
             };

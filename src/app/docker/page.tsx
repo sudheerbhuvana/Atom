@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { ArrowLeft, Terminal, Play, Square, RotateCw, Globe, Code, Search, ChevronUp, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Terminal, Play, Square, RotateCw, Code, Search, ChevronUp, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { DockerContainer } from '@/types';
@@ -111,15 +111,15 @@ export default function DockerDashboard() {
 
     const filteredAndSortedContainers = useMemo(() => {
         // Filter
-        let result = containers.filter(c =>
+        const result = containers.filter(c =>
             c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             c.image.toLowerCase().includes(searchQuery.toLowerCase())
         );
 
         // Sort
-        result.sort((a: any, b: any) => {
-            let valA = a[sortKey];
-            let valB = b[sortKey];
+        result.sort((a, b) => {
+            const valA = (a[sortKey as keyof DockerContainer] ?? '') as string | number;
+            const valB = (b[sortKey as keyof DockerContainer] ?? '') as string | number;
 
             // Natural sort for strings
             if (typeof valA === 'string' && typeof valB === 'string') {

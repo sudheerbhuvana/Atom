@@ -1,20 +1,19 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, X, ArrowRight, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { GripVertical, ArrowRight, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import styles from '../Dashboard.module.css';
 
 interface SortableWidgetProps {
     id: string;
     children: React.ReactNode;
     isEditMode: boolean;
-    onRemove?: (id: string) => void;
     onMove?: (id: string) => void;
     currentColumn?: 'left' | 'right';
     enabled?: boolean;
     onToggle?: (id: string) => void;
 }
 
-export default function SortableWidget({ id, children, isEditMode, onRemove, onMove, currentColumn, enabled = true, onToggle }: SortableWidgetProps) {
+export default function SortableWidget({ id, children, isEditMode, onMove, currentColumn, enabled = true, onToggle }: SortableWidgetProps) {
     const {
         attributes,
         listeners,

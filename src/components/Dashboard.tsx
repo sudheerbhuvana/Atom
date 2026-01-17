@@ -12,6 +12,8 @@ import CustomWidget from './widgets/CustomWidget';
 import DockerWidget from './widgets/DockerWidget';
 import ShortcutsModal from './modals/ShortcutsModal';
 import ClockWidget from './widgets/ClockWidget';
+import Link from 'next/link';
+import { Widget } from '@/types';
 import { useStatus } from '@/context/StatusContext';
 import GenericWidget from './widgets/GenericWidget';
 import SortableWidget from './widgets/SortableWidget';
@@ -31,7 +33,7 @@ export default function Dashboard({ user }: { user?: { username: string; tags?: 
     const { refreshAll, checkMany } = useStatus();
 
     const [activeId, setActiveId] = useState<string | null>(null);
-    const [localWidgets, setLocalWidgets] = useState<any[]>([]);
+    const [localWidgets, setLocalWidgets] = useState<Widget[]>([]);
 
     useEffect(() => {
         if (config?.widgets) {
@@ -126,7 +128,7 @@ export default function Dashboard({ user }: { user?: { username: string; tags?: 
         if (!config?.widgets) return;
         const newWidgets = localWidgets.map(w => {
             if (w.id === id) {
-                return { ...w, column: w.column === 'right' ? 'left' : 'right' };
+                return { ...w, column: (w.column === 'right' ? 'left' : 'right') as 'left' | 'right' };
             }
             return w;
         });
@@ -281,14 +283,13 @@ export default function Dashboard({ user }: { user?: { username: string; tags?: 
             ? styles.wrapperCompact
             : styles.wrapper;
 
-    const renderWidget = (widget: any) => {
+    const renderWidget = (widget: Widget) => {
         const currentColumn = widget.column || 'left';
         return (
             <SortableWidget
                 key={widget.id}
                 id={widget.id}
                 isEditMode={isEditMode}
-                onRemove={handleRemoveWidget}
                 onMove={config.layout?.widgetAlignment === 'both' ? () => handleMoveSide(widget.id) : undefined}
                 currentColumn={currentColumn}
                 enabled={widget.enabled !== false}
