@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import { X, AlertCircle } from 'lucide-react';
 import styles from './ContainerExecModal.module.css';
 import { createPortal } from 'react-dom';
+import type { Terminal } from 'xterm';
+import type { FitAddon } from 'xterm-addon-fit';
 
 interface Props {
     containerId: string;
@@ -14,7 +16,7 @@ interface Props {
 export default function ContainerExecModal({ containerId, containerName, onClose }: Props) {
     const terminalRef = useRef<HTMLDivElement>(null);
     const [error, setError] = useState<string | null>(null);
-    const xtermRef = useRef<{ term: any; fitAddon: any } | null>(null);
+    const xtermRef = useRef<{ term: Terminal; fitAddon: FitAddon } | null>(null);
 
     // Ensure we only render the portal on the client
     const [mounted, setMounted] = useState(false);

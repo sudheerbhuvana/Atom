@@ -12,7 +12,6 @@ import CustomWidget from './widgets/CustomWidget';
 import DockerWidget from './widgets/DockerWidget';
 import ShortcutsModal from './modals/ShortcutsModal';
 import ClockWidget from './widgets/ClockWidget';
-import Link from 'next/link';
 import { Widget } from '@/types';
 import { useStatus } from '@/context/StatusContext';
 import GenericWidget from './widgets/GenericWidget';
@@ -117,12 +116,6 @@ export default function Dashboard({ user }: { user?: { username: string; tags?: 
     }, [localWidgets, config, updateConfig]);
 
 
-    const handleRemoveWidget = useCallback((id: string) => {
-        if (!config?.widgets) return;
-        const newWidgets = localWidgets.filter(w => w.id !== id);
-        setLocalWidgets(newWidgets);
-        updateConfig({ ...config, widgets: newWidgets });
-    }, [config, updateConfig, localWidgets]);
 
     const handleMoveSide = useCallback((id: string) => {
         if (!config?.widgets) return;
