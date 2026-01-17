@@ -269,12 +269,13 @@
     grid-column: 1 / -1;
     text-align: center;
     padding: 2rem;
-    color: var(--text-muted);
+    color: var(--text-secondary);
 }
 
 .emptyState p {
     margin-bottom: 1rem;
     font-size: 0.9rem;
+    color: var(--text-secondary);
 }
 
 .searchWebBtn {
@@ -282,17 +283,18 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.6rem 1.2rem;
-    background: #222222;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     color: var(--text-primary);
     font-size: 0.85rem;
     text-decoration: none;
-    transition: background 0.2s;
+    transition: all 0.2s;
 }
 
 .searchWebBtn:hover {
-    background: #2a2a2a;
+    background: var(--bg-hover);
+    border-color: var(--accent-color);
 }
 
 .settingsBtn {
@@ -317,6 +319,45 @@
     .contentGrid:not(.fullWidth) {
         grid-template-columns: 350px 1fr;
     }
+
+    .contentGrid.widgetsRight {
+        grid-template-columns: 1fr 350px;
+    }
+
+    .contentGrid.widgetsRight .leftCol {
+        order: 2;
+        padding: 1rem 1rem 4rem 2rem;
+        /* Adjust padding for right side */
+    }
+
+    .contentGrid.widgetsRight .rightCol {
+        order: 1;
+        padding: 1rem 2rem 4rem 1rem;
+        /* Adjust padding for left side app list */
+    }
+
+    .contentGrid.widgetsBoth {
+        grid-template-columns: 350px 1fr 350px;
+    }
+
+    .contentGrid.widgetsBoth .leftCol {
+        order: 0;
+        padding-right: 1rem;
+    }
+
+    .contentGrid.widgetsBoth .rightCol {
+        order: 1;
+        padding: 1rem;
+    }
+
+    .contentGrid.widgetsBoth .rightWidgetCol {
+        order: 2;
+        padding: 1rem 0 4rem 1rem;
+        min-width: 350px;
+        overflow-y: auto;
+        height: 100%;
+        scrollbar-width: none;
+    }
 }
 
 /* Mobile Responsive */
@@ -339,6 +380,7 @@
         max-width: 100%;
         /* Reset max-width logic */
         margin: 0;
+        /* margin: 0; */
     }
 
     .contentGrid {
@@ -447,4 +489,96 @@
         grid-template-columns: repeat(2, 1fr) !important;
         gap: 0.75rem;
     }
+}
+
+/* Edit Mode Styles */
+.editModeBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.editModeBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.editModeActive {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+    color: white;
+}
+
+.editModeActive:hover {
+    background: var(--accent-hover);
+}
+
+.sortableItem {
+    border: 1px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    transition: border-color 0.2s;
+}
+
+.sortableItem:hover {
+    border-color: var(--text-secondary);
+}
+
+.widgetControls {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
+    z-index: 10;
+}
+
+.dragHandle {
+    color: var(--text-muted);
+    cursor: grab;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.dragHandle:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.dragHandle:active {
+    cursor: grabbing;
+}
+
+.removeBtn {
+    color: #ef4444;
+    background: transparent;
+    border: none;
+    padding: 0.25rem;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.removeBtn:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.sortableOverlay {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    /* Prevent interaction with widget contents while editing */
 }

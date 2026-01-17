@@ -14,6 +14,7 @@ export interface Service {
     description?: string;
     color?: string; // Optional accent color override
     ping?: string;  // Optional Host/IP for ICMP ping
+    tags?: string[]; // Access control tags
     createdAt?: number;
     updatedAt?: number;
 }
@@ -37,6 +38,7 @@ export interface AppConfig {
         fullSizeButtons?: boolean;
         style?: 'list' | 'grid';
         containerWidth?: 'full' | 'centered' | 'compact';
+        widgetAlignment?: 'left' | 'right' | 'both';
     };
     searchEngine?: string; // 'google', 'duckduckgo', etc.
     user?: {
@@ -52,8 +54,10 @@ export interface AppConfig {
 
 export interface Widget {
     id: string;
-    type: 'system-monitor' | 'weather' | 'clock' | 'generic' | 'docker'; // Add more types later
+    type: 'system-monitor' | 'weather' | 'clock' | 'generic' | 'docker' | 'custom'; // Add more types later
     title?: string;
+    column?: 'left' | 'right';
+    enabled?: boolean; // Default true
     options?: Record<string, unknown>;
 }
 
@@ -80,4 +84,5 @@ export interface DockerContainer {
     memory?: string;
     memPercent?: number;
     ports: string;
+    privateIp?: string;
 }

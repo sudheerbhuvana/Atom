@@ -21,6 +21,7 @@ export const serviceSchema = z.object({
     description: z.string().optional(),
     color: z.string().optional(),
     ping: z.string().optional(),
+    tags: z.array(z.string()).optional(),
     createdAt: z.number().optional(),
     updatedAt: z.number().optional(),
 });
@@ -54,6 +55,7 @@ export const appConfigSchema = z.object({
         fullSizeButtons: z.boolean().optional(),
         style: z.enum(['list', 'grid']).optional(),
         containerWidth: z.enum(['full', 'centered', 'compact']).optional(),
+        widgetAlignment: z.enum(['left', 'right', 'both']).optional(),
     }),
     searchEngine: z.string().optional(),
     user: z.object({
@@ -66,8 +68,10 @@ export const appConfigSchema = z.object({
     }).optional(),
     widgets: z.array(z.object({
         id: z.string(),
-        type: z.enum(['system-monitor', 'weather', 'clock', 'generic', 'docker']),
+        type: z.enum(['system-monitor', 'weather', 'clock', 'generic', 'docker', 'custom']),
         title: z.string().optional(),
+        column: z.enum(['left', 'right']).optional(),
+        enabled: z.boolean().optional(),
         options: z.record(z.string(), z.any()).optional(),
     })).optional(),
 });
@@ -80,16 +84,22 @@ export const loginSchema = z.object({
 
 export const registerSchema = z.object({
     username: usernameSchema,
+    email: z.string().email('Invalid email address').optional(),
     password: passwordSchema,
 });
 
 export const changePasswordSchema = z.object({
     id: z.number().int().positive(),
-    password: passwordSchema,
+    password: passwordSchema.optional(),
+    role: z.enum(['admin', 'member']).optional(),
+    tags: z.array(z.string()).optional()
 });
 
 export const createUserSchema = z.object({
     username: usernameSchema,
+    email: z.string().email('Invalid email address').optional().or(z.literal('')),
+    tags: z.array(z.string()).optional(),
     password: passwordSchema,
+    role: z.enum(['admin', 'member']).optional().default('member')
 });
 

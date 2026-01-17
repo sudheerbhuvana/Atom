@@ -64,6 +64,118 @@ try {
 
     const schema = fs.readFileSync(schemaPath, 'utf8');
     db.exec(schema);
+
+    // Auto-migration: Check for new columns in existing tables
+    try {
+        const userColumns = db.prepare('PRAGMA table_info(users)').all() as { name: string }[];
+
+        // Add 'tags' column if missing
+        if (!userColumns.some(c => c.name === 'tags')) {
+            console.log('Migrating database: Adding tags column to users table...');
+            db.prepare('ALTER TABLE users ADD COLUMN tags TEXT').run();
+        }
+
+        // Add 'email' column if missing (legacy support)
+        if (!userColumns.some(c => c.name === 'email')) {
+            console.log('Migrating database: Adding email column to users table...');
+            db.prepare('ALTER TABLE users ADD COLUMN email TEXT').run();
+        }
+
+        // Add 'role' column if missing
+        if (!userColumns.some(c => c.name === 'role')) {
+            console.log('Migrating database: Adding role column to users table...');
+            db.prepare("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'member'").run();
+
+            // Set ID 1 and special users to admin
+            db.prepare("UPDATE users SET role = 'admin' WHERE id = 1 OR username = 'admin' OR username = 'VishnuByrraju'").run();
+        }
+
+    } catch (migErr) {
+        console.error('Auto-migration error:', migErr);
+    }
+
+    // Also load OAuth2 schema
+    const oauthPossiblePaths = [
+        path.join(process.cwd(), 'src', 'lib', 'schema_oauth.sql'),
+        path.join(process.cwd(), 'schema_oauth.sql'),
+        path.join(__dirname, 'schema_oauth.sql'),
+    ];
+
+    let oauthSchemaPath: string | null = null;
+    for (const testPath of oauthPossiblePaths) {
+        if (fs.existsSync(testPath)) {
+            oauthSchemaPath = testPath;
+            break;
+        }
+    }
+
+    if (oauthSchemaPath) {
+        const oauthSchema = fs.readFileSync(oauthSchemaPath, 'utf8');
+        db.exec(oauthSchema);
+    } else {
+        console.warn('OAuth2 schema file not found - OAuth features will not be available');
+    }
+
+    // Load Federated Auth schema
+    const federatedPossiblePaths = [
+        path.join(process.cwd(), 'src', 'lib', 'schema_federated.sql'),
+        path.join(process.cwd(), 'schema_federated.sql'),
+        path.join(__dirname, 'schema_federated.sql'),
+    ];
+
+    let federatedSchemaPath: string | null = null;
+    for (const testPath of federatedPossiblePaths) {
+        if (fs.existsSync(testPath)) {
+            federatedSchemaPath = testPath;
+            break;
+        }
+    }
+
+    if (federatedSchemaPath) {
+        const fedSchema = fs.readFileSync(federatedSchemaPath, 'utf8');
+        db.exec(fedSchema);
+
+        // Auto-migration for auth_providers new columns
+        // This runs on every startup to ensure backward compatibility
+        try {
+            // Check if table exists first
+            const tableExists = db.prepare(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='auth_providers'"
+            ).get();
+
+            if (tableExists) {
+                const authProviderColumns = db.prepare('PRAGMA table_info(auth_providers)').all() as { name: string }[];
+                const existingColumnNames = authProviderColumns.map(c => c.name);
+
+                console.log('Checking auth_providers schema...');
+
+                // Add user_match_field if missing
+                if (!existingColumnNames.includes('user_match_field')) {
+                    console.log('✓ Migrating database: Adding user_match_field to auth_providers...');
+                    db.prepare("ALTER TABLE auth_providers ADD COLUMN user_match_field TEXT DEFAULT 'email'").run();
+                }
+
+                // Add auto_register if missing
+                if (!existingColumnNames.includes('auto_register')) {
+                    console.log('✓ Migrating database: Adding auto_register to auth_providers...');
+                    db.prepare('ALTER TABLE auth_providers ADD COLUMN auto_register INTEGER DEFAULT 1').run();
+                }
+
+                // Add auto_launch if missing
+                if (!existingColumnNames.includes('auto_launch')) {
+                    console.log('✓ Migrating database: Adding auto_launch to auth_providers...');
+                    db.prepare('ALTER TABLE auth_providers ADD COLUMN auto_launch INTEGER DEFAULT 0').run();
+                }
+
+                console.log('✓ auth_providers schema migration complete');
+            }
+        } catch (migErr) {
+            console.error('❌ Auth provider migration error:', migErr);
+            // Don't throw - allow app to continue even if migration fails
+        }
+    } else {
+        console.warn('Federated Auth schema file not found');
+    }
 } catch (error) {
     console.error('Failed to initialize database schema:', error);
     // Re-throw in production to fail fast, but allow dev to continue
@@ -76,6 +188,9 @@ export interface User {
     id: number;
     username: string;
     password_hash: string;
+    email?: string;
+    tags?: string[];
+    role: 'admin' | 'member';
     created_at: string;
 }
 
@@ -86,19 +201,38 @@ export interface Session {
     created_at: string;
 }
 
+// Helper to parse user tags and role
+function parseUser(user: unknown): User | undefined {
+    if (!user) return undefined;
+    const u = user as { tags?: string; role?: 'admin' | 'member' } & Omit<User, 'tags' | 'role'>;
+    return {
+        ...u,
+        tags: u.tags ? u.tags.split(',') : [],
+        role: u.role || 'member'
+    };
+}
+
 // User operations
+export function getUserByEmail(email: string): User | undefined {
+    const user = getStmt('SELECT * FROM users WHERE email = ?').get(email);
+    return parseUser(user);
+}
+
 export function getUserByUsername(username: string): User | undefined {
-    return getStmt('SELECT * FROM users WHERE username = ?').get(username) as User | undefined;
+    const user = getStmt('SELECT * FROM users WHERE username = ?').get(username);
+    return parseUser(user);
 }
 
 export function getUserById(id: number): User | undefined {
-    return getStmt('SELECT * FROM users WHERE id = ?').get(id) as User | undefined;
+    const user = getStmt('SELECT * FROM users WHERE id = ?').get(id);
+    return parseUser(user);
 }
 
-export function createUser(username: string, passwordHash: string): User {
-    // Use INSERT OR IGNORE to prevent race conditions
-    const stmt = getStmt('INSERT INTO users (username, password_hash) VALUES (?, ?)');
-    const result = stmt.run(username, passwordHash);
+export function createUser(username: string, passwordHash: string, email?: string, tags?: string[], role: 'admin' | 'member' = 'member'): User {
+    // Use INSERT OR IGNORE to prevent raise conditions
+    const tagsStr = tags ? tags.join(',') : null;
+    const stmt = getStmt('INSERT INTO users (username, password_hash, email, tags, role) VALUES (?, ?, ?, ?, ?)');
+    const result = stmt.run(username, passwordHash, email || null, tagsStr, role);
 
     // Check if insert was successful (SQLite returns changes > 0)
     if (result.changes === 0) {
@@ -116,14 +250,37 @@ export function getUserCount(): number {
 export function updateUserPassword(userId: number, passwordHash: string): void {
     getStmt('UPDATE users SET password_hash = ? WHERE id = ?').run(passwordHash, userId);
 }
+export function updateUserRole(userId: number, role: 'admin' | 'member'): void {
+    getStmt('UPDATE users SET role = ? WHERE id = ?').run(role, userId);
+}
+export function updateUserTags(userId: number, tags: string[]): void {
+    const tagsStr = tags.join(',');
+    getStmt('UPDATE users SET tags = ? WHERE id = ?').run(tagsStr, userId);
+}
 
 export function getAllUsers(): User[] {
-    return getStmt('SELECT id, username, password_hash, created_at FROM users').all() as User[];
+    const users = getStmt('SELECT id, username, password_hash, email, tags, role, created_at FROM users').all();
+    return users.map((u: unknown) => {
+        const user = u as User & { tags: string };
+        return {
+            ...user,
+            tags: user.tags ? user.tags.split(',') : [],
+            role: user.role || 'member'
+        };
+    });
 }
 
 // Safe version that doesn't return password hashes
 export function getAllUsersSafe(): Omit<User, 'password_hash'>[] {
-    return getStmt('SELECT id, username, created_at FROM users').all() as Omit<User, 'password_hash'>[];
+    const users = getStmt('SELECT id, username, email, tags, role, created_at FROM users').all();
+    return users.map((u: unknown) => {
+        const user = u as User & { tags: string };
+        return {
+            ...user,
+            tags: user.tags ? user.tags.split(',') : [],
+            role: user.role || 'member'
+        };
+    });
 }
 
 export function deleteUser(id: number): void {

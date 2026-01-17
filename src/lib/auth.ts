@@ -69,16 +69,23 @@ export async function getCurrentUser() {
     return {
         id: session.user.id,
         username: session.user.username,
+        email: session.user.email,
+        tags: session.user.tags || [],
+        role: session.user.role || 'member',
     };
 }
 
-export async function register(username: string, password: string): Promise<{ success: boolean; error?: string }> {
+export async function register(username: string, password: string, email?: string): Promise<{ success: boolean; error?: string }> {
     // Hash password first (before DB check to prevent timing attacks)
     const hash = await hashPassword(password);
 
     try {
+        // Check if this is the first user (onboarding)
+        const isFirstUser = getUserCount() === 0;
+        const role = isFirstUser ? 'admin' : 'member';
+
         // createUser will throw if username exists (prevents race condition)
-        const user = createUser(username, hash);
+        const user = createUser(username, hash, email, undefined, role);
 
         // Auto-login after registration
         const session = createSession(user.id);

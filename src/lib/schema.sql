@@ -2,6 +2,9 @@ CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
+    email TEXT,
+    tags TEXT,
+    role TEXT DEFAULT 'member',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -18,3 +21,7 @@ CREATE TABLE IF NOT EXISTS config (
     data TEXT NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+-- OAuth2/OIDC Provider tables are loaded separately from schema_oauth.sql
+
+

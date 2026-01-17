@@ -99,7 +99,7 @@ export default function SystemStatsWidget() {
                 </div>
 
                 <div className={styles.memRow} style={{ marginTop: '0.5rem' }}>
-                    <span>Stg</span>
+                    <span>Storage</span>
                     <span className={styles.memValue}>{formatBytes(stats.storage[0].used)} / {formatBytes(stats.storage[0].size)}</span>
                 </div>
                 <div className={styles.progressBar}>
