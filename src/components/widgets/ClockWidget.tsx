@@ -11,9 +11,10 @@ interface ClockWidgetProps {
     weatherLocation?: string;
     onShowShortcuts: () => void;
     onRefresh: () => void;
+    customAction?: React.ReactNode;
 }
 
-export default function ClockWidget({ weatherLocation, onShowShortcuts, onRefresh }: ClockWidgetProps) {
+export default function ClockWidget({ weatherLocation, onShowShortcuts, onRefresh, customAction }: ClockWidgetProps) {
     const [time, setTime] = useState(new Date());
     const [weather, setWeather] = useState<{ temp: number; isDay: boolean } | null>(null);
     const router = useRouter();
@@ -84,6 +85,7 @@ export default function ClockWidget({ weatherLocation, onShowShortcuts, onRefres
             </div>
 
             <div className={styles.widgetControls}>
+                {customAction}
                 <button
                     onClick={onRefresh}
                     className={styles.settingsBtn}

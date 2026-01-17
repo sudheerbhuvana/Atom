@@ -24,13 +24,4 @@ CREATE TABLE IF NOT EXISTS config (
 
 -- OAuth2/OIDC Provider tables are loaded separately from schema_oauth.sql
 
-CREATE TABLE IF NOT EXISTS proxy_hosts (
-    id TEXT PRIMARY KEY,
-    domain TEXT UNIQUE NOT NULL,
-    targetHost TEXT NOT NULL DEFAULT 'host.docker.internal',
-    targetPort INTEGER NOT NULL,
-    ssl INTEGER DEFAULT 0,
-    letsencrypt INTEGER DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+

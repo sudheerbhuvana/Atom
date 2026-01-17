@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { ArrowLeft, Terminal, Play, Square, RotateCw, Globe, Code } from 'lucide-react';
+import { useEffect, useState, useMemo } from 'react';
+import { ArrowLeft, Terminal, Play, Square, RotateCw, Globe, Code, Search, ChevronUp, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { DockerContainer } from '@/types';
 import ContainerLogsModal from '@/components/modals/ContainerLogsModal';
 import ContainerExecModal from '@/components/modals/ContainerExecModal';
-import AddProxyHostModal from '@/components/modals/AddProxyHostModal';
 import styles from './page.module.css';
 
 export default function DockerDashboard() {
@@ -17,8 +16,12 @@ export default function DockerDashboard() {
     const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
     const [viewingLogsFor, setViewingLogsFor] = useState<{ id: string, name: string } | null>(null);
     const [viewingTerminalFor, setViewingTerminalFor] = useState<{ id: string, name: string } | null>(null);
-    const [showProxyModal, setShowProxyModal] = useState(false);
     const [processing, setProcessing] = useState<string | null>(null);
+
+    // Filter and Sort State
+    const [searchQuery, setSearchQuery] = useState('');
+    const [sortKey, setSortKey] = useState<string>('name');
+    const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
     const fetchContainers = async () => {
         try {
@@ -33,7 +36,6 @@ export default function DockerDashboard() {
 
                         // If we have an old container, and the new one has "empty" stats (timeout), 
                         // but is still running, keep the old stats to prevent UI jumping.
-                        // Backend returns 'memory: -' on stats error.
                         if (oldC && newC.state === 'running' && newC.memory === '-' && oldC.memory !== '-') {
                             return {
                                 ...newC,
@@ -51,9 +53,6 @@ export default function DockerDashboard() {
             } else {
                 const data = await res.json();
                 setError(data.hint || data.details || 'Failed to connect to Docker API');
-                // Don't clear containers if just a transient error? 
-                // Actually, if we can't connect, we probably shouldn't show stale state for too long, 
-                // but for now let's keep it simple.
             }
         } catch (e) {
             console.error('Failed to fetch containers:', e);
@@ -68,13 +67,6 @@ export default function DockerDashboard() {
         const interval = setInterval(fetchContainers, 3000);
         return () => clearInterval(interval);
     }, []);
-
-    // ... (keep handleAction and getUsageColor same)
-
-    // Re-declare them here for the replace block context if needed, 
-    // but better to just use the existing ones if not replacing the whole function.
-    // The tool says "ReplacementContent" must replace 'targetContent'.
-    // I will replace the whole component body/return to be safe and include the error UI.
 
     const handleAction = async (id: string, action: 'start' | 'stop' | 'restart') => {
         setProcessing(id);
@@ -102,11 +94,48 @@ export default function DockerDashboard() {
         }
     };
 
+    const toggleSort = (key: string) => {
+        if (sortKey === key) {
+            setSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortKey(key);
+            setSortDir('asc');
+        }
+    };
+
     const getUsageColor = (percent: number) => {
         if (percent > 80) return styles.high;
         if (percent > 50) return styles.med;
         return styles.low;
     };
+
+    const filteredAndSortedContainers = useMemo(() => {
+        // Filter
+        let result = containers.filter(c =>
+            c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            c.image.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+
+        // Sort
+        result.sort((a: any, b: any) => {
+            let valA = a[sortKey];
+            let valB = b[sortKey];
+
+            // Natural sort for strings
+            if (typeof valA === 'string' && typeof valB === 'string') {
+                return sortDir === 'asc'
+                    ? valA.localeCompare(valB)
+                    : valB.localeCompare(valA);
+            }
+
+            // Numeric sort
+            if (valA < valB) return sortDir === 'asc' ? -1 : 1;
+            if (valA > valB) return sortDir === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        return result;
+    }, [containers, searchQuery, sortKey, sortDir]);
 
     return (
         <div className={styles.container}>
@@ -123,10 +152,19 @@ export default function DockerDashboard() {
                         )}
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
-                    <button className={styles.backBtn} onClick={() => setShowProxyModal(true)}>
-                        <Globe size={16} /> Reverse Proxy
-                    </button>
+
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flex: 1, justifyContent: 'flex-end', marginLeft: '2rem' }}>
+                    <div className={styles.searchGroup}>
+                        <Search size={16} className={styles.searchIcon} />
+                        <input
+                            type="text"
+                            className={styles.searchInput}
+                            placeholder="Filter by name or image..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+
                     <Link href="/" className={styles.backBtn}>
                         <ArrowLeft size={16} /> Back to Dashboard
                     </Link>
@@ -157,10 +195,38 @@ export default function DockerDashboard() {
                     <table className={styles.table}>
                         <thead>
                             <tr>
-                                <th>Name / Image</th>
-                                <th>Status</th>
-                                <th>CPU</th>
-                                <th>Memory</th>
+                                <th className={styles.sortableHeader} onClick={() => toggleSort('name')}>
+                                    Name / Image
+                                    {sortKey === 'name' && (
+                                        <span className={styles.sortIndicator}>
+                                            {sortDir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                        </span>
+                                    )}
+                                </th>
+                                <th className={styles.sortableHeader} onClick={() => toggleSort('state')}>
+                                    Status
+                                    {sortKey === 'state' && (
+                                        <span className={styles.sortIndicator}>
+                                            {sortDir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                        </span>
+                                    )}
+                                </th>
+                                <th className={styles.sortableHeader} onClick={() => toggleSort('cpu')}>
+                                    CPU
+                                    {sortKey === 'cpu' && (
+                                        <span className={styles.sortIndicator}>
+                                            {sortDir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                        </span>
+                                    )}
+                                </th>
+                                <th className={styles.sortableHeader} onClick={() => toggleSort('memPercent')}>
+                                    Memory
+                                    {sortKey === 'memPercent' && (
+                                        <span className={styles.sortIndicator}>
+                                            {sortDir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                        </span>
+                                    )}
+                                </th>
                                 <th>Network</th>
                                 <th>Actions</th>
                             </tr>
@@ -172,7 +238,7 @@ export default function DockerDashboard() {
                                         <div className={styles.loading}>Loading containers...</div>
                                     </td>
                                 </tr>
-                            ) : containers.map(container => (
+                            ) : filteredAndSortedContainers.map(container => (
                                 <tr key={container.id}>
                                     <td>
                                         <div className={styles.containerName}>{container.name}</div>
@@ -312,11 +378,6 @@ export default function DockerDashboard() {
                 />
             )}
 
-            {showProxyModal && (
-                <AddProxyHostModal
-                    onClose={() => setShowProxyModal(false)}
-                />
-            )}
         </div>
     );
 }

@@ -222,6 +222,19 @@ export default function SettingsPage() {
                         </div>
 
                         <div className={styles.controlRow}>
+                            <label>Widget Position</label>
+                            <select
+                                className={styles.select}
+                                value={config?.layout?.widgetAlignment || 'left'}
+                                onChange={(e) => updateLayout('widgetAlignment', e.target.value)}
+                            >
+                                <option value="left">Left Side</option>
+                                <option value="right">Right Side</option>
+                                <option value="both">Both Sides</option>
+                            </select>
+                        </div>
+
+                        <div className={styles.controlRow}>
                             <label>Dashboard Title</label>
                             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                                 <input

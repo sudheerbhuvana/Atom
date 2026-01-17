@@ -55,6 +55,7 @@ export const appConfigSchema = z.object({
         fullSizeButtons: z.boolean().optional(),
         style: z.enum(['list', 'grid']).optional(),
         containerWidth: z.enum(['full', 'centered', 'compact']).optional(),
+        widgetAlignment: z.enum(['left', 'right', 'both']).optional(),
     }),
     searchEngine: z.string().optional(),
     user: z.object({
@@ -69,6 +70,8 @@ export const appConfigSchema = z.object({
         id: z.string(),
         type: z.enum(['system-monitor', 'weather', 'clock', 'generic', 'docker', 'custom']),
         title: z.string().optional(),
+        column: z.enum(['left', 'right']).optional(),
+        enabled: z.boolean().optional(),
         options: z.record(z.string(), z.any()).optional(),
     })).optional(),
 });

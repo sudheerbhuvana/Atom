@@ -38,6 +38,7 @@ export interface AppConfig {
         fullSizeButtons?: boolean;
         style?: 'list' | 'grid';
         containerWidth?: 'full' | 'centered' | 'compact';
+        widgetAlignment?: 'left' | 'right' | 'both';
     };
     searchEngine?: string; // 'google', 'duckduckgo', etc.
     user?: {
@@ -55,6 +56,8 @@ export interface Widget {
     id: string;
     type: 'system-monitor' | 'weather' | 'clock' | 'generic' | 'docker' | 'custom'; // Add more types later
     title?: string;
+    column?: 'left' | 'right';
+    enabled?: boolean; // Default true
     options?: Record<string, unknown>;
 }
 
